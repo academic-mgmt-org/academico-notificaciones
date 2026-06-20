@@ -32,7 +32,7 @@ async function bootstrap() {
     allowedHeaders: 'Content-Type,Authorization'
   });
 
-  const port = process.env.PORT || 3002;
+  const port = process.env.PORT || 3003;
   await app.listen(port, '0.0.0.0');
   logger.log(`🚀 Microservicio academico-catalogo corriendo en puerto ${port} (HTTP/2 Fastify habilitado)`);
 }
