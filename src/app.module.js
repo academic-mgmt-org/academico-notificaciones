@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule, Logger } from 'nestjs-pino';
 import { pinoLoggerConfig } from './config/pino-logger.config';
-import { ConnectMiddleware } from './middleware/connect.middleware';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { APP_FILTER } from '@nestjs/core';
 import { HealthController } from './controller/health.controller';
@@ -24,8 +23,5 @@ import { HealthController } from './controller/health.controller';
     }
   ]
 })
-export class AppModule {
-  configure(consumer) {
-    consumer.apply(ConnectMiddleware).forRoutes('*');
-  }
-}
+export class AppModule {}
+
