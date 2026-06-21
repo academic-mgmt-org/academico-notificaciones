@@ -1,6 +1,8 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../config/auth/guard/auth_guard';
 
 @Controller('api')
+@UseGuards(AuthGuard)
 export class HealthController {
   @Get('health')
   health() {
