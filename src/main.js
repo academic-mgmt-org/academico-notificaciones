@@ -7,6 +7,7 @@ import { fastifyConnectPlugin } from '@connectrpc/connect-fastify';
 import { ConnectError, Code } from '@connectrpc/connect';
 import connectRoutes from './connect-routes';
 import * as path from 'path';
+import { TokenManager } from './config/auth/services/token_manager';
 config();
 
 async function bootstrap() {
@@ -25,6 +26,8 @@ async function bootstrap() {
 
   const { registerServerReflectionFromFile } = await Function('return import("@lambdalisue/connectrpc-grpcreflect/server")')();
 
+  const tokenManager = app.get(TokenManager);
+
   const fastifyInstance = app.getHttpAdapter().getInstance();
   await fastifyInstance.register(fastifyConnectPlugin, {
     routes: (router) => {
@@ -33,7 +36,37 @@ async function bootstrap() {
     },
     interceptors: [
       (next) => async (req) => {
-        // Permitir peticiones de reflexión sin API Key
+        // 1. Validar Bearer Token (Requerido para todas las peticiones, incluyendo reflexión)
+        const authHeader = req.header.get('authorization');
+        if (!authHeader) {
+          throw new ConnectError(
+            'Acceso no autorizado: Token de autorización no provisto',
+            Code.Unauthenticated,
+          );
+        }
+
+        let token = authHeader;
+        if (process.env.ENV !== 'dev') {
+          const [type, t] = authHeader.split(' ');
+          if (type !== 'Bearer' || !t) {
+            throw new ConnectError(
+              'Acceso no autorizado: Token Bearer inválido o mal formado',
+              Code.Unauthenticated,
+            );
+          }
+          token = t;
+        }
+
+        try {
+          await tokenManager.getPayload(token);
+        } catch (error) {
+          throw new ConnectError(
+            'Acceso no autorizado: Token inválido o expirado',
+            Code.Unauthenticated,
+          );
+        }
+
+        // 2. Validar x-api-key (Bypasseado para reflexión gRPC)
         if (req.service && req.service.typeName && req.service.typeName.startsWith('grpc.reflection.')) {
           return await next(req);
         }
@@ -46,6 +79,7 @@ async function bootstrap() {
             Code.Unauthenticated,
           );
         }
+
         return await next(req);
       },
     ],
