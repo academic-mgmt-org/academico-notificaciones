@@ -1,0 +1,30 @@
+syntax = "proto3";
+package catalogo.v1;
+
+message Materia {
+  string id = 1;
+  string codigo = 2;
+  string nombre = 3;
+  int32 creditos = 4;
+}
+
+message ListarMateriasRequest {
+  string carrera_id = 1; // Opcional, para filtrar por carrera
+}
+
+message ListarMateriasResponse {
+  repeated Materia materias = 1;
+}
+
+message ObtenerMateriaRequest {
+  string id = 1;
+}
+
+message ObtenerMateriaResponse {
+  Materia materia = 1;
+}
+
+service CatalogoService {
+  rpc ListarMaterias(ListarMateriasRequest) returns (ListarMateriasResponse) {}
+  rpc ObtenerMateria(ObtenerMateriaRequest) returns (ObtenerMateriaResponse) {}
+}

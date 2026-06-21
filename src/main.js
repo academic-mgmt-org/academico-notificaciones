@@ -6,6 +6,7 @@ import { config } from 'dotenv';
 import { fastifyConnectPlugin } from '@connectrpc/connect-fastify';
 import { ConnectError, Code } from '@connectrpc/connect';
 import connectRoutes from './connect-routes';
+import * as path from 'path';
 config();
 
 async function bootstrap() {
@@ -22,11 +23,21 @@ async function bootstrap() {
   app.useLogger(app.get(Logger));
   const logger = app.get(Logger);
 
+  const { registerServerReflectionFromFile } = await Function('return import("@lambdalisue/connectrpc-grpcreflect/server")')();
+
   const fastifyInstance = app.getHttpAdapter().getInstance();
   await fastifyInstance.register(fastifyConnectPlugin, {
-    routes: connectRoutes,
+    routes: (router) => {
+      registerServerReflectionFromFile(router, path.join(process.cwd(), 'schema.bin'));
+      connectRoutes(router);
+    },
     interceptors: [
       (next) => async (req) => {
+        // Permitir peticiones de reflexión sin API Key
+        if (req.service && req.service.typeName && req.service.typeName.startsWith('grpc.reflection.')) {
+          return await next(req);
+        }
+
         const apiKey = req.header.get('x-api-key');
         const expectedApiKey = process.env.CATALOGO_API_KEY;
         if (!apiKey || apiKey !== expectedApiKey) {
