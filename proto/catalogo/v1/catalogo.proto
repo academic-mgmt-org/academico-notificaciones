@@ -6,10 +6,23 @@ message Materia {
   string codigo = 2;
   string nombre = 3;
   int32 creditos = 4;
+  string carrera_id = 5;
+  string carrera_codigo = 6;
+  string carrera_nombre = 7;
+  int32 nivel_periodo = 8;
+  string malla_id = 9;
+  string malla_codigo = 10;
+  string malla_version = 11;
+  int32 orden = 12;
+  string tipo = 13;
 }
 
 message ListarMateriasRequest {
   string carrera_id = 1; // Opcional, para filtrar por carrera
+  int32 nivel_periodo = 2; // Opcional, para filtrar por nivel/semestre dentro de la malla
+  string carrera_codigo = 3; // Opcional, para filtrar por código de carrera (ej. SOFT-001)
+  string malla_id = 4; // Opcional, para consultar una malla específica
+  bool solo_malla_vigente = 5; // Si es true, usa únicamente la malla vigente
 }
 
 message ListarMateriasResponse {

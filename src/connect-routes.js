@@ -8,16 +8,105 @@ import getPool from './db.js';
 export default (router) => {
   router.service(CatalogoService, {
     async listarMaterias(req) {
-      console.log("🔍 [CatalogoService] ListarMaterias called, carreraId:", req.carreraId);
-      
-      let query = "SELECT id, codigo, nombre, creditos FROM academico.cursos WHERE estado = 'activo'";
+      console.log("🔍 [CatalogoService] ListarMaterias called:", {
+        carreraId: req.carreraId,
+        carreraCodigo: req.carreraCodigo,
+        nivelPeriodo: req.nivelPeriodo,
+        mallaId: req.mallaId,
+        soloMallaVigente: req.soloMallaVigente
+      });
+
       const params = [];
-      
-      if (req.carreraId) {
-        query += " AND carrera_id = $1";
-        params.push(req.carreraId);
+
+      const addParam = (value) => {
+        params.push(value);
+        return `$${params.length}`;
+      };
+
+      const useMallaQuery = Boolean(
+        req.nivelPeriodo > 0 ||
+        req.carreraCodigo ||
+        req.mallaId ||
+        req.soloMallaVigente
+      );
+
+      let query;
+
+      if (useMallaQuery) {
+        query = `
+          SELECT
+            cu.id,
+            cu.codigo,
+            cu.nombre,
+            cu.creditos,
+            c.id AS carrera_id,
+            c.codigo AS carrera_codigo,
+            c.nombre AS carrera_nombre,
+            mc.nivel_periodo,
+            m.id AS malla_id,
+            m.codigo AS malla_codigo,
+            m.version AS malla_version,
+            mc.orden,
+            mc.tipo
+          FROM academico.mallas_curriculares m
+          INNER JOIN academico.carreras c
+            ON c.id = m.carrera_id
+          INNER JOIN academico.malla_cursos mc
+            ON mc.malla_id = m.id
+          INNER JOIN academico.cursos cu
+            ON cu.id = mc.curso_id
+          WHERE cu.estado = 'activo'
+            AND mc.estado = 'activa'
+            AND m.estado = 'activa'
+        `;
+
+        if (req.mallaId) {
+          query += ` AND m.id::text = ${addParam(req.mallaId)}`;
+        } else if (req.soloMallaVigente || req.nivelPeriodo > 0 || req.carreraCodigo) {
+          query += " AND m.vigente IS TRUE";
+        }
+
+        if (req.carreraId) {
+          query += ` AND c.id::text = ${addParam(req.carreraId)}`;
+        }
+
+        if (req.carreraCodigo) {
+          query += ` AND c.codigo = ${addParam(req.carreraCodigo)}`;
+        }
+
+        if (req.nivelPeriodo > 0) {
+          query += ` AND mc.nivel_periodo = ${addParam(req.nivelPeriodo)}`;
+        }
+
+        query += " ORDER BY c.codigo ASC, mc.nivel_periodo ASC, mc.orden ASC, cu.codigo ASC";
+      } else {
+        query = `
+          SELECT
+            cu.id,
+            cu.codigo,
+            cu.nombre,
+            cu.creditos,
+            c.id AS carrera_id,
+            c.codigo AS carrera_codigo,
+            c.nombre AS carrera_nombre,
+            0 AS nivel_periodo,
+            NULL::BIGINT AS malla_id,
+            NULL::VARCHAR AS malla_codigo,
+            NULL::VARCHAR AS malla_version,
+            0 AS orden,
+            '' AS tipo
+          FROM academico.cursos cu
+          LEFT JOIN academico.carreras c
+            ON c.id = cu.carrera_id
+          WHERE cu.estado = 'activo'
+        `;
+
+        if (req.carreraId) {
+          query += ` AND cu.carrera_id::text = ${addParam(req.carreraId)}`;
+        }
+
+        query += " ORDER BY cu.id ASC";
       }
-      query += " ORDER BY id ASC";
 
       try {
         const { rows } = await getPool().query(query, params);
@@ -25,7 +114,16 @@ export default (router) => {
           id: String(row.id),
           codigo: row.codigo,
           nombre: row.nombre,
-          creditos: row.creditos
+          creditos: row.creditos,
+          carreraId: row.carrera_id ? String(row.carrera_id) : '',
+          carreraCodigo: row.carrera_codigo || '',
+          carreraNombre: row.carrera_nombre || '',
+          nivelPeriodo: row.nivel_periodo || 0,
+          mallaId: row.malla_id ? String(row.malla_id) : '',
+          mallaCodigo: row.malla_codigo || '',
+          mallaVersion: row.malla_version || '',
+          orden: row.orden || 0,
+          tipo: row.tipo || ''
         }));
         return { materias };
       } catch (error) {
@@ -39,8 +137,22 @@ export default (router) => {
         throw new Error("ID de materia requerido");
       }
 
-      const query = "SELECT id, codigo, nombre, creditos FROM academico.cursos WHERE id = $1 AND estado = 'activo'";
-      
+      const query = `
+        SELECT
+          cu.id,
+          cu.codigo,
+          cu.nombre,
+          cu.creditos,
+          c.id AS carrera_id,
+          c.codigo AS carrera_codigo,
+          c.nombre AS carrera_nombre
+        FROM academico.cursos cu
+        LEFT JOIN academico.carreras c
+          ON c.id = cu.carrera_id
+        WHERE cu.id = $1
+          AND cu.estado = 'activo'
+      `;
+
       try {
         const { rows } = await getPool().query(query, [req.id]);
         if (rows.length === 0) {
@@ -52,7 +164,16 @@ export default (router) => {
             id: String(row.id),
             codigo: row.codigo,
             nombre: row.nombre,
-            creditos: row.creditos
+            creditos: row.creditos,
+            carreraId: row.carrera_id ? String(row.carrera_id) : '',
+            carreraCodigo: row.carrera_codigo || '',
+            carreraNombre: row.carrera_nombre || '',
+            nivelPeriodo: 0,
+            mallaId: '',
+            mallaCodigo: '',
+            mallaVersion: '',
+            orden: 0,
+            tipo: ''
           }
         };
       } catch (error) {
@@ -62,4 +183,3 @@ export default (router) => {
     }
   });
 };
-
