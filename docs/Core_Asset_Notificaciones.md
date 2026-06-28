@@ -322,6 +322,9 @@ service NotificationService {
   rpc ListNotifications(ListNotificationsRequest)
       returns(ListNotificationsResponse);
 
+  rpc RecentNotifications(ListNotificationsRequest)
+      returns(ListNotificationsResponse);
+
   rpc CountUnread(CountUnreadRequest)
       returns(CountUnreadResponse);
 
@@ -333,6 +336,17 @@ service NotificationService {
 
   rpc MarkAllAsRead(MarkAllReadRequest)
       returns(GenericResponse);
+}
+
+service HealthService {
+  rpc Health(HealthRequest)
+      returns(HealthResponse);
+
+  rpc Ready(ReadyRequest)
+      returns(ReadyResponse);
+
+  rpc Live(LiveRequest)
+      returns(LiveResponse);
 }
 ```
 
@@ -371,12 +385,20 @@ message Notification {
 
 ---
 
-# 11. Contrato REST
+# 11. Contrato Connect/gRPC
+
+Los endpoints REST fueron retirados. El contrato público del servicio se expone por Connect/gRPC.
+
+## Consultar notificaciones
+
+```text
+notificaciones.v1.NotificationService/ListNotifications
+```
 
 ## Consultar recientes
 
 ```text
-GET /notificaciones/api/v1/notificaciones/recientes?limit=3
+notificaciones.v1.NotificationService/RecentNotifications
 ```
 
 Respuesta:
@@ -403,7 +425,7 @@ Respuesta:
 ## Consultar contador
 
 ```text
-GET /notificaciones/api/v1/notificaciones/contador
+notificaciones.v1.NotificationService/CountUnread
 ```
 
 ---
@@ -411,7 +433,7 @@ GET /notificaciones/api/v1/notificaciones/contador
 ## Crear notificación
 
 ```text
-POST /notificaciones/api/v1/notificaciones
+notificaciones.v1.NotificationService/CreateNotification
 ```
 
 ```json
@@ -429,7 +451,7 @@ POST /notificaciones/api/v1/notificaciones
 ## Marcar como leída
 
 ```text
-PATCH /notificaciones/api/v1/notificaciones/{id}/leer
+notificaciones.v1.NotificationService/MarkAsRead
 ```
 
 ---
@@ -437,12 +459,22 @@ PATCH /notificaciones/api/v1/notificaciones/{id}/leer
 ## Marcar todas como leídas
 
 ```text
-PATCH /notificaciones/api/v1/notificaciones/leer-todas
+notificaciones.v1.NotificationService/MarkAllAsRead
 ```
 
 ---
 
-## DTOs de integración REST y Connect/gRPC
+## Health checks
+
+```text
+notificaciones.v1.HealthService/Health
+notificaciones.v1.HealthService/Ready
+notificaciones.v1.HealthService/Live
+```
+
+---
+
+## DTOs de integración Connect/gRPC
 
 Los DTOs del core asset se implementan en:
 
@@ -450,7 +482,7 @@ Los DTOs del core asset se implementan en:
 src/notifications/dto/notifications.dto.js
 ```
 
-Estos objetos definen el contrato reutilizable para la línea de productos y evitan que REST, Connect/gRPC y la lógica de negocio normalicen datos de forma diferente.
+Estos objetos definen el contrato reutilizable para la línea de productos y evitan que Connect/gRPC y la lógica de negocio normalicen datos de forma diferente.
 
 ### DTOs de entrada
 
@@ -572,7 +604,7 @@ usuarios.id -> notificaciones.usuario_id
 Consume:
 
 ```text
-GET /notificaciones/api/v1/notificaciones/recientes
+notificaciones.v1.NotificationService/RecentNotifications
 ```
 
 La pantalla `/home` muestra:
@@ -720,7 +752,7 @@ Validaciones incluidas actualmente:
 Validaciones no incluidas actualmente en azure-pipelines.yml:
 - npm test / Jest.
 - npm audit o escaneo de vulnerabilidades.
-- Health check HTTP contra /api/health.
+- Health check Connect/gRPC contra notificaciones.v1.HealthService/Health.
 - Prueba web con Playwright.
 ```
 

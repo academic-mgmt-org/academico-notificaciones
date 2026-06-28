@@ -4,7 +4,6 @@ import { LoggerModule, Logger } from 'nestjs-pino';
 import { pinoLoggerConfig } from './config/pino-logger.config';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { APP_FILTER } from '@nestjs/core';
-import { HealthController } from './controller/health.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './config/auth/auth.module';
 import { NotificationsModule } from './notifications/notifications.module';
@@ -23,7 +22,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     AuthModule,
     NotificationsModule
   ],
-  controllers: [HealthController],
+  controllers: [],
   providers: [
     Logger,
     {

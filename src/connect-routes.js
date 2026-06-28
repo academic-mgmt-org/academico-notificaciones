@@ -1,5 +1,8 @@
 import { ConnectError, Code } from '@connectrpc/connect';
-import { NotificationService } from './gen/notificaciones/v1/notificaciones_pb.js';
+import {
+  HealthService,
+  NotificationService,
+} from './gen/notificaciones/v1/notificaciones_pb.js';
 import { NotificationsService } from './notifications/notifications.service.js';
 import {
   CountUnreadRequestDto,
@@ -10,6 +13,7 @@ import {
   MarkAllReadRequestDto,
   MarkReadRequestDto,
   NotificationResponseDto,
+  RecentNotificationsRequestDto,
 } from './notifications/dto/notifications.dto.js';
 
 /**
@@ -25,6 +29,15 @@ export default (router, app) => {
       return withConnectErrors(async () => {
         const request = ListNotificationsRequestDto.from(req);
         const result = await notificationsService.listForUser(null, request);
+
+        return ListNotificationsResponseDto.from(result).toConnect();
+      });
+    },
+
+    async recentNotifications(req) {
+      return withConnectErrors(async () => {
+        const request = RecentNotificationsRequestDto.from(req);
+        const result = await notificationsService.recentForUser(null, request);
 
         return ListNotificationsResponseDto.from(result).toConnect();
       });
@@ -66,6 +79,32 @@ export default (router, app) => {
         const result = await notificationsService.markAllAsRead(null, request);
         return result.toConnect();
       });
+    },
+  });
+
+  router.service(HealthService, {
+    async health() {
+      return {
+        status: 'healthy',
+        service: 'academico-notificaciones',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+      };
+    },
+
+    async ready() {
+      return {
+        ready: true,
+        timestamp: new Date().toISOString(),
+      };
+    },
+
+    async live() {
+      return {
+        alive: true,
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+      };
     },
   });
 

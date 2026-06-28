@@ -28,6 +28,30 @@ message ListNotificationsResponse {
   int32 unread_count = 2;
 }
 
+message HealthRequest {}
+
+message HealthResponse {
+  string status = 1;
+  string service = 2;
+  string timestamp = 3;
+  double uptime = 4;
+}
+
+message ReadyRequest {}
+
+message ReadyResponse {
+  bool ready = 1;
+  string timestamp = 2;
+}
+
+message LiveRequest {}
+
+message LiveResponse {
+  bool alive = 1;
+  string timestamp = 2;
+  double uptime = 3;
+}
+
 message CountUnreadRequest {
   string usuario_id = 1;
 }
@@ -70,8 +94,15 @@ message GenericResponse {
 
 service NotificationService {
   rpc ListNotifications(ListNotificationsRequest) returns (ListNotificationsResponse) {}
+  rpc RecentNotifications(ListNotificationsRequest) returns (ListNotificationsResponse) {}
   rpc CountUnread(CountUnreadRequest) returns (CountUnreadResponse) {}
   rpc CreateNotification(CreateNotificationRequest) returns (NotificationResponse) {}
   rpc MarkAsRead(MarkReadRequest) returns (NotificationResponse) {}
   rpc MarkAllAsRead(MarkAllReadRequest) returns (GenericResponse) {}
+}
+
+service HealthService {
+  rpc Health(HealthRequest) returns (HealthResponse) {}
+  rpc Ready(ReadyRequest) returns (ReadyResponse) {}
+  rpc Live(LiveRequest) returns (LiveResponse) {}
 }

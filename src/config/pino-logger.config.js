@@ -159,7 +159,7 @@ export const pinoLoggerConfig = {
      */
     autoLogging: {
       ignore: req => {
-        const ignoredPaths = ['/api/health', '/health', '/healthz', '/readiness', '/liveness', '/metrics',
+        const ignoredPaths = ['/notificaciones.v1.HealthService/', '/health', '/healthz', '/readiness', '/liveness', '/metrics',
         // Si usas Prometheus
         '/api-docs',
         // Swagger UI

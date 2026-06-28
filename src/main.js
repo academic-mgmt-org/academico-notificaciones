@@ -36,6 +36,10 @@ async function bootstrap() {
     },
     interceptors: [
       (next) => async (req) => {
+        if (req.service?.typeName === 'notificaciones.v1.HealthService') {
+          return await next(req);
+        }
+
         // 1. Validar Bearer Token (Requerido para todas las peticiones, incluyendo reflexión)
         const authHeader = req.header.get('authorization');
         if (!authHeader) {

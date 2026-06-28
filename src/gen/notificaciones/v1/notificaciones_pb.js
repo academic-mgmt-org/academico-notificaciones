@@ -8,7 +8,7 @@ import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2
  * Describes the file notificaciones/v1/notificaciones.proto.
  */
 export const file_notificaciones_v1_notificaciones = /*@__PURE__*/
-  fileDesc("CiZub3RpZmljYWNpb25lcy92MS9ub3RpZmljYWNpb25lcy5wcm90bxIRbm90aWZpY2FjaW9uZXMudjEi1AEKDE5vdGlmaWNhdGlvbhIKCgJpZBgBIAEoCRISCgp1c3VhcmlvX2lkGAIgASgJEg4KBnRpdHVsbxgDIAEoCRIPCgdtZW5zYWplGAQgASgJEgwKBHRpcG8YBSABKAkSDQoFY2FuYWwYBiABKAkSEQoJcHJpb3JpZGFkGAcgASgJEg4KBmVzdGFkbxgIIAEoCRINCgVsZWlkYRgJIAEoCBIPCgdpY29uX2lkGAogASgJEhEKCWNyZWFkb19lbhgLIAEoCRIQCghsZWlkb19lbhgMIAEoCSJNChhMaXN0Tm90aWZpY2F0aW9uc1JlcXVlc3QSEgoKdXN1YXJpb19pZBgBIAEoCRIOCgZlc3RhZG8YAiABKAkSDQoFbGltaXQYAyABKAUiaQoZTGlzdE5vdGlmaWNhdGlvbnNSZXNwb25zZRI2Cg1ub3RpZmljYXRpb25zGAEgAygLMh8ubm90aWZpY2FjaW9uZXMudjEuTm90aWZpY2F0aW9uEhQKDHVucmVhZF9jb3VudBgCIAEoBSIoChJDb3VudFVucmVhZFJlcXVlc3QSEgoKdXN1YXJpb19pZBgBIAEoCSIrChNDb3VudFVucmVhZFJlc3BvbnNlEhQKDHVucmVhZF9jb3VudBgBIAEoBSK4AQoZQ3JlYXRlTm90aWZpY2F0aW9uUmVxdWVzdBISCgp1c3VhcmlvX2lkGAEgASgJEg0KBWVtYWlsGAIgASgJEhYKDmlkZW50aWZpY2FjaW9uGAMgASgJEg4KBnRpdHVsbxgEIAEoCRIPCgdtZW5zYWplGAUgASgJEgwKBHRpcG8YBiABKAkSDQoFY2FuYWwYByABKAkSEQoJcHJpb3JpZGFkGAggASgJEg8KB2ljb25faWQYCSABKAkiXgoUTm90aWZpY2F0aW9uUmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCBI1Cgxub3RpZmljYXRpb24YAiABKAsyHy5ub3RpZmljYWNpb25lcy52MS5Ob3RpZmljYXRpb24iMQoPTWFya1JlYWRSZXF1ZXN0EgoKAmlkGAEgASgJEhIKCnVzdWFyaW9faWQYAiABKAkiKAoSTWFya0FsbFJlYWRSZXF1ZXN0EhIKCnVzdWFyaW9faWQYASABKAkiRQoPR2VuZXJpY1Jlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSDwoHbWVzc2FnZRgCIAEoCRIQCghhZmZlY3RlZBgDIAEoBTKRBAoTTm90aWZpY2F0aW9uU2VydmljZRJwChFMaXN0Tm90aWZpY2F0aW9ucxIrLm5vdGlmaWNhY2lvbmVzLnYxLkxpc3ROb3RpZmljYXRpb25zUmVxdWVzdBosLm5vdGlmaWNhY2lvbmVzLnYxLkxpc3ROb3RpZmljYXRpb25zUmVzcG9uc2UiABJeCgtDb3VudFVucmVhZBIlLm5vdGlmaWNhY2lvbmVzLnYxLkNvdW50VW5yZWFkUmVxdWVzdBomLm5vdGlmaWNhY2lvbmVzLnYxLkNvdW50VW5yZWFkUmVzcG9uc2UiABJtChJDcmVhdGVOb3RpZmljYXRpb24SLC5ub3RpZmljYWNpb25lcy52MS5DcmVhdGVOb3RpZmljYXRpb25SZXF1ZXN0Gicubm90aWZpY2FjaW9uZXMudjEuTm90aWZpY2F0aW9uUmVzcG9uc2UiABJbCgpNYXJrQXNSZWFkEiIubm90aWZpY2FjaW9uZXMudjEuTWFya1JlYWRSZXF1ZXN0Gicubm90aWZpY2FjaW9uZXMudjEuTm90aWZpY2F0aW9uUmVzcG9uc2UiABJcCg1NYXJrQWxsQXNSZWFkEiUubm90aWZpY2FjaW9uZXMudjEuTWFya0FsbFJlYWRSZXF1ZXN0GiIubm90aWZpY2FjaW9uZXMudjEuR2VuZXJpY1Jlc3BvbnNlIgBiBnByb3RvMw");
+  fileDesc("CiZub3RpZmljYWNpb25lcy92MS9ub3RpZmljYWNpb25lcy5wcm90bxIRbm90aWZpY2FjaW9uZXMudjEi1AEKDE5vdGlmaWNhdGlvbhIKCgJpZBgBIAEoCRISCgp1c3VhcmlvX2lkGAIgASgJEg4KBnRpdHVsbxgDIAEoCRIPCgdtZW5zYWplGAQgASgJEgwKBHRpcG8YBSABKAkSDQoFY2FuYWwYBiABKAkSEQoJcHJpb3JpZGFkGAcgASgJEg4KBmVzdGFkbxgIIAEoCRINCgVsZWlkYRgJIAEoCBIPCgdpY29uX2lkGAogASgJEhEKCWNyZWFkb19lbhgLIAEoCRIQCghsZWlkb19lbhgMIAEoCSJNChhMaXN0Tm90aWZpY2F0aW9uc1JlcXVlc3QSEgoKdXN1YXJpb19pZBgBIAEoCRIOCgZlc3RhZG8YAiABKAkSDQoFbGltaXQYAyABKAUiaQoZTGlzdE5vdGlmaWNhdGlvbnNSZXNwb25zZRI2Cg1ub3RpZmljYXRpb25zGAEgAygLMh8ubm90aWZpY2FjaW9uZXMudjEuTm90aWZpY2F0aW9uEhQKDHVucmVhZF9jb3VudBgCIAEoBSIPCg1IZWFsdGhSZXF1ZXN0IlQKDkhlYWx0aFJlc3BvbnNlEg4KBnN0YXR1cxgBIAEoCRIPCgdzZXJ2aWNlGAIgASgJEhEKCXRpbWVzdGFtcBgDIAEoCRIOCgZ1cHRpbWUYBCABKAEiDgoMUmVhZHlSZXF1ZXN0IjEKDVJlYWR5UmVzcG9uc2USDQoFcmVhZHkYASABKAgSEQoJdGltZXN0YW1wGAIgASgJIg0KC0xpdmVSZXF1ZXN0IkAKDExpdmVSZXNwb25zZRINCgVhbGl2ZRgBIAEoCBIRCgl0aW1lc3RhbXAYAiABKAkSDgoGdXB0aW1lGAMgASgBIigKEkNvdW50VW5yZWFkUmVxdWVzdBISCgp1c3VhcmlvX2lkGAEgASgJIisKE0NvdW50VW5yZWFkUmVzcG9uc2USFAoMdW5yZWFkX2NvdW50GAEgASgFIrgBChlDcmVhdGVOb3RpZmljYXRpb25SZXF1ZXN0EhIKCnVzdWFyaW9faWQYASABKAkSDQoFZW1haWwYAiABKAkSFgoOaWRlbnRpZmljYWNpb24YAyABKAkSDgoGdGl0dWxvGAQgASgJEg8KB21lbnNhamUYBSABKAkSDAoEdGlwbxgGIAEoCRINCgVjYW5hbBgHIAEoCRIRCglwcmlvcmlkYWQYCCABKAkSDwoHaWNvbl9pZBgJIAEoCSJeChROb3RpZmljYXRpb25SZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIEjUKDG5vdGlmaWNhdGlvbhgCIAEoCzIfLm5vdGlmaWNhY2lvbmVzLnYxLk5vdGlmaWNhdGlvbiIxCg9NYXJrUmVhZFJlcXVlc3QSCgoCaWQYASABKAkSEgoKdXN1YXJpb19pZBgCIAEoCSIoChJNYXJrQWxsUmVhZFJlcXVlc3QSEgoKdXN1YXJpb19pZBgBIAEoCSJFCg9HZW5lcmljUmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCBIPCgdtZXNzYWdlGAIgASgJEhAKCGFmZmVjdGVkGAMgASgFMoUFChNOb3RpZmljYXRpb25TZXJ2aWNlEnAKEUxpc3ROb3RpZmljYXRpb25zEisubm90aWZpY2FjaW9uZXMudjEuTGlzdE5vdGlmaWNhdGlvbnNSZXF1ZXN0Giwubm90aWZpY2FjaW9uZXMudjEuTGlzdE5vdGlmaWNhdGlvbnNSZXNwb25zZSIAEnIKE1JlY2VudE5vdGlmaWNhdGlvbnMSKy5ub3RpZmljYWNpb25lcy52MS5MaXN0Tm90aWZpY2F0aW9uc1JlcXVlc3QaLC5ub3RpZmljYWNpb25lcy52MS5MaXN0Tm90aWZpY2F0aW9uc1Jlc3BvbnNlIgASXgoLQ291bnRVbnJlYWQSJS5ub3RpZmljYWNpb25lcy52MS5Db3VudFVucmVhZFJlcXVlc3QaJi5ub3RpZmljYWNpb25lcy52MS5Db3VudFVucmVhZFJlc3BvbnNlIgASbQoSQ3JlYXRlTm90aWZpY2F0aW9uEiwubm90aWZpY2FjaW9uZXMudjEuQ3JlYXRlTm90aWZpY2F0aW9uUmVxdWVzdBonLm5vdGlmaWNhY2lvbmVzLnYxLk5vdGlmaWNhdGlvblJlc3BvbnNlIgASWwoKTWFya0FzUmVhZBIiLm5vdGlmaWNhY2lvbmVzLnYxLk1hcmtSZWFkUmVxdWVzdBonLm5vdGlmaWNhY2lvbmVzLnYxLk5vdGlmaWNhdGlvblJlc3BvbnNlIgASXAoNTWFya0FsbEFzUmVhZBIlLm5vdGlmaWNhY2lvbmVzLnYxLk1hcmtBbGxSZWFkUmVxdWVzdBoiLm5vdGlmaWNhY2lvbmVzLnYxLkdlbmVyaWNSZXNwb25zZSIAMvkBCg1IZWFsdGhTZXJ2aWNlEk8KBkhlYWx0aBIgLm5vdGlmaWNhY2lvbmVzLnYxLkhlYWx0aFJlcXVlc3QaIS5ub3RpZmljYWNpb25lcy52MS5IZWFsdGhSZXNwb25zZSIAEkwKBVJlYWR5Eh8ubm90aWZpY2FjaW9uZXMudjEuUmVhZHlSZXF1ZXN0GiAubm90aWZpY2FjaW9uZXMudjEuUmVhZHlSZXNwb25zZSIAEkkKBExpdmUSHi5ub3RpZmljYWNpb25lcy52MS5MaXZlUmVxdWVzdBofLm5vdGlmaWNhY2lvbmVzLnYxLkxpdmVSZXNwb25zZSIAYgZwcm90bzM");
 
 /**
  * Describes the message notificaciones.v1.Notification.
@@ -32,57 +32,105 @@ export const ListNotificationsResponseSchema = /*@__PURE__*/
   messageDesc(file_notificaciones_v1_notificaciones, 2);
 
 /**
+ * Describes the message notificaciones.v1.HealthRequest.
+ * Use `create(HealthRequestSchema)` to create a new message.
+ */
+export const HealthRequestSchema = /*@__PURE__*/
+  messageDesc(file_notificaciones_v1_notificaciones, 3);
+
+/**
+ * Describes the message notificaciones.v1.HealthResponse.
+ * Use `create(HealthResponseSchema)` to create a new message.
+ */
+export const HealthResponseSchema = /*@__PURE__*/
+  messageDesc(file_notificaciones_v1_notificaciones, 4);
+
+/**
+ * Describes the message notificaciones.v1.ReadyRequest.
+ * Use `create(ReadyRequestSchema)` to create a new message.
+ */
+export const ReadyRequestSchema = /*@__PURE__*/
+  messageDesc(file_notificaciones_v1_notificaciones, 5);
+
+/**
+ * Describes the message notificaciones.v1.ReadyResponse.
+ * Use `create(ReadyResponseSchema)` to create a new message.
+ */
+export const ReadyResponseSchema = /*@__PURE__*/
+  messageDesc(file_notificaciones_v1_notificaciones, 6);
+
+/**
+ * Describes the message notificaciones.v1.LiveRequest.
+ * Use `create(LiveRequestSchema)` to create a new message.
+ */
+export const LiveRequestSchema = /*@__PURE__*/
+  messageDesc(file_notificaciones_v1_notificaciones, 7);
+
+/**
+ * Describes the message notificaciones.v1.LiveResponse.
+ * Use `create(LiveResponseSchema)` to create a new message.
+ */
+export const LiveResponseSchema = /*@__PURE__*/
+  messageDesc(file_notificaciones_v1_notificaciones, 8);
+
+/**
  * Describes the message notificaciones.v1.CountUnreadRequest.
  * Use `create(CountUnreadRequestSchema)` to create a new message.
  */
 export const CountUnreadRequestSchema = /*@__PURE__*/
-  messageDesc(file_notificaciones_v1_notificaciones, 3);
+  messageDesc(file_notificaciones_v1_notificaciones, 9);
 
 /**
  * Describes the message notificaciones.v1.CountUnreadResponse.
  * Use `create(CountUnreadResponseSchema)` to create a new message.
  */
 export const CountUnreadResponseSchema = /*@__PURE__*/
-  messageDesc(file_notificaciones_v1_notificaciones, 4);
+  messageDesc(file_notificaciones_v1_notificaciones, 10);
 
 /**
  * Describes the message notificaciones.v1.CreateNotificationRequest.
  * Use `create(CreateNotificationRequestSchema)` to create a new message.
  */
 export const CreateNotificationRequestSchema = /*@__PURE__*/
-  messageDesc(file_notificaciones_v1_notificaciones, 5);
+  messageDesc(file_notificaciones_v1_notificaciones, 11);
 
 /**
  * Describes the message notificaciones.v1.NotificationResponse.
  * Use `create(NotificationResponseSchema)` to create a new message.
  */
 export const NotificationResponseSchema = /*@__PURE__*/
-  messageDesc(file_notificaciones_v1_notificaciones, 6);
+  messageDesc(file_notificaciones_v1_notificaciones, 12);
 
 /**
  * Describes the message notificaciones.v1.MarkReadRequest.
  * Use `create(MarkReadRequestSchema)` to create a new message.
  */
 export const MarkReadRequestSchema = /*@__PURE__*/
-  messageDesc(file_notificaciones_v1_notificaciones, 7);
+  messageDesc(file_notificaciones_v1_notificaciones, 13);
 
 /**
  * Describes the message notificaciones.v1.MarkAllReadRequest.
  * Use `create(MarkAllReadRequestSchema)` to create a new message.
  */
 export const MarkAllReadRequestSchema = /*@__PURE__*/
-  messageDesc(file_notificaciones_v1_notificaciones, 8);
+  messageDesc(file_notificaciones_v1_notificaciones, 14);
 
 /**
  * Describes the message notificaciones.v1.GenericResponse.
  * Use `create(GenericResponseSchema)` to create a new message.
  */
 export const GenericResponseSchema = /*@__PURE__*/
-  messageDesc(file_notificaciones_v1_notificaciones, 9);
+  messageDesc(file_notificaciones_v1_notificaciones, 15);
 
 /**
  * @generated from service notificaciones.v1.NotificationService
  */
 export const NotificationService = /*@__PURE__*/
   serviceDesc(file_notificaciones_v1_notificaciones, 0);
+
+/**
+ * @generated from service notificaciones.v1.HealthService
+ */
+export const HealthService = /*@__PURE__*/
+  serviceDesc(file_notificaciones_v1_notificaciones, 1);
 
