@@ -114,6 +114,17 @@ export class HttpExceptionFilter {
     }
 
     // Enviar respuesta al cliente
-    response.status(status).json(errorResponse);
+    if (typeof response.status === 'function' && typeof response.json === 'function') {
+      response.status(status).json(errorResponse);
+    } else if (typeof response.code === 'function' && typeof response.send === 'function') {
+      response.code(status).send(errorResponse);
+    } else if (typeof response.status === 'function' && typeof response.send === 'function') {
+      response.status(status).send(errorResponse);
+    } else if (typeof response.writeHead === 'function' && typeof response.end === 'function') {
+      response.writeHead(status, { 'content-type': 'application/json' });
+      response.end(JSON.stringify(errorResponse));
+    } else {
+      throw exception;
+    }
   }
 }

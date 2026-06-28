@@ -45,6 +45,10 @@ export class AuthGuard {
             return authHeader;
         }
 
+        if (!authHeader) {
+            return undefined;
+        }
+
         const [type, token] = authHeader?.split(' ') ?? [];
         return type === 'Bearer' ? token : undefined;
     }

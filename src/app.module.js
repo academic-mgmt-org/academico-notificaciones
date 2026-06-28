@@ -7,6 +7,7 @@ import { APP_FILTER } from '@nestjs/core';
 import { HealthController } from './controller/health.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './config/auth/auth.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -19,7 +20,8 @@ import { AuthModule } from './config/auth/auth.module';
       global: true,
       secret: process.env.JWT_DOC_SECRET
     }),
-    AuthModule
+    AuthModule,
+    NotificationsModule
   ],
   controllers: [HealthController],
   providers: [
@@ -31,4 +33,3 @@ import { AuthModule } from './config/auth/auth.module';
   ]
 })
 export class AppModule {}
-

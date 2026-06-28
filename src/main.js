@@ -32,7 +32,7 @@ async function bootstrap() {
   await fastifyInstance.register(fastifyConnectPlugin, {
     routes: (router) => {
       registerServerReflectionFromFile(router, path.join(process.cwd(), 'schema.bin'));
-      connectRoutes(router);
+      connectRoutes(router, app);
     },
     interceptors: [
       (next) => async (req) => {
@@ -72,7 +72,7 @@ async function bootstrap() {
         }
 
         const apiKey = req.header.get('x-api-key');
-        const expectedApiKey = process.env.CATALOGO_API_KEY;
+        const expectedApiKey = process.env.NOTIFICACIONES_API_KEY;
         if (!apiKey || apiKey !== expectedApiKey) {
           throw new ConnectError(
             'Acceso no autorizado: API Key inválida o no provista',
@@ -88,12 +88,11 @@ async function bootstrap() {
   app.enableCors({
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: 'Content-Type,Authorization'
+    allowedHeaders: 'Content-Type,Authorization,x-api-key'
   });
 
   const port = process.env.PORT || 3003;
   await app.listen(port, '0.0.0.0');
-  logger.log(`🚀 Microservicio academico-catalogo corriendo en puerto ${port} (HTTP/2 Fastify habilitado)`);
+  logger.log(`Microservicio academico-notificaciones corriendo en puerto ${port} (HTTP/2 Fastify habilitado)`);
 }
 bootstrap();
-

@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package notificaciones.v1;
+
+message Notification {
+  string id = 1;
+  string usuario_id = 2;
+  string titulo = 3;
+  string mensaje = 4;
+  string tipo = 5;
+  string canal = 6;
+  string prioridad = 7;
+  string estado = 8;
+  bool leida = 9;
+  string icon_id = 10;
+  string creado_en = 11;
+  string leido_en = 12;
+}
+
+message ListNotificationsRequest {
+  string usuario_id = 1;
+  string estado = 2;
+  int32 limit = 3;
+}
+
+message ListNotificationsResponse {
+  repeated Notification notifications = 1;
+  int32 unread_count = 2;
+}
+
+message CountUnreadRequest {
+  string usuario_id = 1;
+}
+
+message CountUnreadResponse {
+  int32 unread_count = 1;
+}
+
+message CreateNotificationRequest {
+  string usuario_id = 1;
+  string email = 2;
+  string identificacion = 3;
+  string titulo = 4;
+  string mensaje = 5;
+  string tipo = 6;
+  string canal = 7;
+  string prioridad = 8;
+  string icon_id = 9;
+}
+
+message NotificationResponse {
+  bool success = 1;
+  Notification notification = 2;
+}
+
+message MarkReadRequest {
+  string id = 1;
+  string usuario_id = 2;
+}
+
+message MarkAllReadRequest {
+  string usuario_id = 1;
+}
+
+message GenericResponse {
+  bool success = 1;
+  string message = 2;
+  int32 affected = 3;
+}
+
+service NotificationService {
+  rpc ListNotifications(ListNotificationsRequest) returns (ListNotificationsResponse) {}
+  rpc CountUnread(CountUnreadRequest) returns (CountUnreadResponse) {}
+  rpc CreateNotification(CreateNotificationRequest) returns (NotificationResponse) {}
+  rpc MarkAsRead(MarkReadRequest) returns (NotificationResponse) {}
+  rpc MarkAllAsRead(MarkAllReadRequest) returns (GenericResponse) {}
+}

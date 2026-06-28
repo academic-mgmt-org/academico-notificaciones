@@ -1,14 +1,12 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '../config/auth/guard/auth_guard';
+import { Controller, Get } from '@nestjs/common';
 
 @Controller('api')
-@UseGuards(AuthGuard)
 export class HealthController {
   @Get('health')
   health() {
     return {
       status: 'healthy',
-      service: 'academico-catalogo',
+      service: 'academico-notificaciones',
       timestamp: new Date().toISOString(),
       uptime: process.uptime()
     };
