@@ -4,15 +4,22 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import getPool from '../db';
-
-const VALID_STATES = new Set(['no_leido', 'leido', 'archivado']);
-const TYPE_TO_ICON = {
-  calificacion: 'i-list',
-  solicitud: 'i-list',
-  matricula: 'i-network',
-  recordatorio: 'i-calendar',
-  sistema: 'i-bell',
-};
+import {
+  CountUnreadRequestDto,
+  CountUnreadResponseDto,
+  CreateNotificationRequestDto,
+  GenericNotificationResponseDto,
+  ListNotificationsRequestDto,
+  ListNotificationsResponseDto,
+  MarkAllReadRequestDto,
+  MarkReadRequestDto,
+  NotificationDto,
+  NotificationRecipientDto,
+  RecentNotificationsRequestDto,
+  normalizeNotificationPriority,
+  normalizeNotificationState,
+  relativeNotificationTime,
+} from './dto/notifications.dto';
 
 @Injectable()
 export class NotificationsService {
@@ -82,15 +89,12 @@ export class NotificationsService {
   }
 
   async resolveUser(user, params = {}) {
-    const explicitUserId = params.usuarioId || params.usuario_id || params.usuarioID;
-    if (explicitUserId && /^\d+$/.test(String(explicitUserId))) {
-      return Number(explicitUserId);
+    const recipient = NotificationRecipientDto.from(params, { user });
+    if (recipient.usuarioId) {
+      return Number(recipient.usuarioId);
     }
 
-    const email = params.email || user?.email || user?.cuenta;
-    const identifier = params.identificacion || params.identifier || user?.identifier || user?.cedula;
-
-    if (!email && !identifier) {
+    if (!recipient.email && !recipient.identificacion) {
       throw new BadRequestException('No se pudo resolver el usuario autenticado');
     }
 
@@ -103,7 +107,7 @@ export class NotificationsService {
       ORDER BY id
       LIMIT 1
       `,
-      [identifier || null, email || null],
+      [recipient.identificacion || null, recipient.email || null],
     );
 
     if (!rows.length) {
@@ -114,16 +118,15 @@ export class NotificationsService {
   }
 
   async listForUser(user, query = {}) {
-    const usuarioId = await this.resolveUser(user, query);
+    const request = ListNotificationsRequestDto.from(query, { user });
+    const usuarioId = await this.resolveUser(user, request);
     await this.ensureDemoNotifications(usuarioId);
 
-    const state = this.normalizeState(query.estado);
-    const limit = Math.min(Math.max(parseInt(query.limit || '5', 10) || 5, 1), 50);
-    const params = [usuarioId, limit];
+    const params = [usuarioId, request.limit];
     let where = 'usuario_id = $1';
 
-    if (state) {
-      params.push(state);
+    if (request.estado) {
+      params.push(request.estado);
       where += ` AND estado = $${params.length}`;
     }
 
@@ -141,27 +144,26 @@ export class NotificationsService {
       this.countUnreadForUserId(usuarioId),
     ]);
 
-    return {
+    return ListNotificationsResponseDto.from({
       notifications: rows.map((row) => this.mapRow(row)),
       unreadCount: unread,
       usuarioId: String(usuarioId),
-    };
-  }
-
-  async recentForUser(user, query = {}) {
-    return this.listForUser(user, {
-      ...query,
-      limit: query.limit || 3,
     });
   }
 
+  async recentForUser(user, query = {}) {
+    const request = RecentNotificationsRequestDto.from(query, { user });
+    return this.listForUser(user, request);
+  }
+
   async countUnread(user, query = {}) {
-    const usuarioId = await this.resolveUser(user, query);
+    const request = CountUnreadRequestDto.from(query, { user });
+    const usuarioId = await this.resolveUser(user, request);
     await this.ensureDemoNotifications(usuarioId);
-    return {
+    return CountUnreadResponseDto.from({
       unreadCount: await this.countUnreadForUserId(usuarioId),
       usuarioId: String(usuarioId),
-    };
+    });
   }
 
   async countUnreadForUserId(usuarioId) {
@@ -178,23 +180,8 @@ export class NotificationsService {
   }
 
   async createNotification(payload = {}, actor = null) {
-    const usuarioId = await this.resolveUser(actor, payload);
-    const title = String(payload.titulo || payload.title || '').trim();
-    const message = String(payload.mensaje || payload.message || '').trim();
-
-    if (!title || !message) {
-      throw new BadRequestException('Titulo y mensaje son requeridos');
-    }
-
-    const type = String(payload.tipo || payload.type || 'sistema').trim() || 'sistema';
-    const channel = String(payload.canal || payload.channel || 'in_app').trim() || 'in_app';
-    const priority = this.normalizePriority(payload.prioridad || payload.priority);
-    const iconId = payload.iconId || payload.icon_id || TYPE_TO_ICON[type] || TYPE_TO_ICON.sistema;
-    const metadata = {
-      ...(payload.metadata && typeof payload.metadata === 'object' ? payload.metadata : {}),
-      iconId,
-      source: payload.source || 'academico-notificaciones',
-    };
+    const request = CreateNotificationRequestDto.from(payload, { user: actor });
+    const usuarioId = await this.resolveUser(actor, request);
 
     const { rows } = await this.pool.query(
       `
@@ -204,14 +191,23 @@ export class NotificationsService {
       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
       RETURNING *
       `,
-      [usuarioId, title, message, type, channel, priority, JSON.stringify(metadata)],
+      [
+        usuarioId,
+        request.titulo,
+        request.mensaje,
+        request.tipo,
+        request.canal,
+        request.prioridad,
+        JSON.stringify(request.metadata),
+      ],
     );
 
     return this.mapRow(rows[0]);
   }
 
   async markAsRead(id, user, query = {}) {
-    const usuarioId = await this.resolveUser(user, query);
+    const request = MarkReadRequestDto.from(query, { id, user });
+    const usuarioId = await this.resolveUser(user, request);
     const { rows } = await this.pool.query(
       `
       UPDATE academico.notificaciones
@@ -222,7 +218,7 @@ export class NotificationsService {
         AND usuario_id = $2
       RETURNING *
       `,
-      [id, usuarioId],
+      [request.id, usuarioId],
     );
 
     if (!rows.length) {
@@ -233,7 +229,8 @@ export class NotificationsService {
   }
 
   async markAllAsRead(user, query = {}) {
-    const usuarioId = await this.resolveUser(user, query);
+    const request = MarkAllReadRequestDto.from(query, { user });
+    const usuarioId = await this.resolveUser(user, request);
     const result = await this.pool.query(
       `
       UPDATE academico.notificaciones
@@ -246,52 +243,23 @@ export class NotificationsService {
       [usuarioId],
     );
 
-    return {
+    return GenericNotificationResponseDto.from({
       success: true,
       affected: result.rowCount,
       message: 'Notificaciones marcadas como leidas',
-    };
+    });
   }
 
   normalizeState(state) {
-    if (!state) {
-      return null;
-    }
-    const normalized = String(state).trim();
-    if (!VALID_STATES.has(normalized)) {
-      throw new BadRequestException('Estado de notificacion invalido');
-    }
-    return normalized;
+    return normalizeNotificationState(state);
   }
 
   normalizePriority(priority) {
-    const normalized = String(priority || 'normal').trim();
-    return ['baja', 'normal', 'alta', 'critica'].includes(normalized)
-      ? normalized
-      : 'normal';
+    return normalizeNotificationPriority(priority);
   }
 
   mapRow(row) {
-    const metadata = row.metadata || {};
-    return {
-      id: String(row.id),
-      usuarioId: String(row.usuario_id),
-      titulo: row.titulo,
-      mensaje: row.mensaje,
-      text: row.mensaje,
-      tipo: row.tipo,
-      canal: row.canal,
-      prioridad: row.prioridad,
-      estado: row.estado,
-      leida: row.estado === 'leido',
-      iconId: metadata.iconId || TYPE_TO_ICON[row.tipo] || TYPE_TO_ICON.sistema,
-      icon_id: metadata.iconId || TYPE_TO_ICON[row.tipo] || TYPE_TO_ICON.sistema,
-      creadoEn: this.toIso(row.creado_en),
-      leidoEn: this.toIso(row.leido_en),
-      actualizadoEn: this.toIso(row.actualizado_en),
-      time: this.relativeTime(row.creado_en),
-      metadata,
-    };
+    return NotificationDto.fromRow(row);
   }
 
   toIso(value) {
@@ -299,25 +267,7 @@ export class NotificationsService {
   }
 
   relativeTime(value) {
-    const date = value ? new Date(value) : new Date();
-    const seconds = Math.max(1, Math.floor((Date.now() - date.getTime()) / 1000));
-
-    if (seconds < 60) {
-      return 'Hace instantes';
-    }
-
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) {
-      return `Hace ${minutes} min`;
-    }
-
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) {
-      return `Hace ${hours} hora${hours === 1 ? '' : 's'}`;
-    }
-
-    const days = Math.floor(hours / 24);
-    return `Hace ${days} dia${days === 1 ? '' : 's'}`;
+    return relativeNotificationTime(value);
   }
 
   async ensureDemoNotifications(usuarioId) {

@@ -442,6 +442,56 @@ PATCH /notificaciones/api/v1/notificaciones/leer-todas
 
 ---
 
+## DTOs de integración REST y Connect/gRPC
+
+Los DTOs del core asset se implementan en:
+
+```text
+src/notifications/dto/notifications.dto.js
+```
+
+Estos objetos definen el contrato reutilizable para la línea de productos y evitan que REST, Connect/gRPC y la lógica de negocio normalicen datos de forma diferente.
+
+### DTOs de entrada
+
+```text
+NotificationRecipientDto
+ListNotificationsRequestDto
+RecentNotificationsRequestDto
+CountUnreadRequestDto
+CreateNotificationRequestDto
+MarkReadRequestDto
+MarkAllReadRequestDto
+```
+
+Responsabilidades:
+
+- Resolver alias `camelCase` y `snake_case`, por ejemplo `usuarioId`, `usuario_id`, `iconId`, `icon_id`.
+- Validar `estado` con los valores `no_leido`, `leido`, `archivado`.
+- Normalizar `prioridad` con los valores `baja`, `normal`, `alta`, `critica`.
+- Limitar consultas de listado a un rango seguro de 1 a 50 registros.
+- Validar identificadores numéricos para usuario y notificación.
+- Exigir `titulo` y `mensaje` al crear notificaciones.
+
+### DTOs de salida
+
+```text
+NotificationDto
+ListNotificationsResponseDto
+CountUnreadResponseDto
+NotificationResponseDto
+GenericNotificationResponseDto
+```
+
+Responsabilidades:
+
+- Mapear filas de `academico.notificaciones` al contrato público.
+- Mantener respuesta REST en formato `camelCase`.
+- Generar respuestas compatibles con Connect/gRPC mediante `toConnect()`.
+- Exponer campos requeridos por el cliente web como `iconId`, `time`, `unreadCount` y `usuarioId`.
+
+---
+
 # 12. Eventos de Dominio
 
 El servicio puede ser invocado por otros Core Assets cuando ocurran eventos relevantes.

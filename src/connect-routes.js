@@ -1,6 +1,16 @@
 import { ConnectError, Code } from '@connectrpc/connect';
 import { NotificationService } from './gen/notificaciones/v1/notificaciones_pb.js';
 import { NotificationsService } from './notifications/notifications.service.js';
+import {
+  CountUnreadRequestDto,
+  CountUnreadResponseDto,
+  CreateNotificationRequestDto,
+  ListNotificationsRequestDto,
+  ListNotificationsResponseDto,
+  MarkAllReadRequestDto,
+  MarkReadRequestDto,
+  NotificationResponseDto,
+} from './notifications/dto/notifications.dto.js';
 
 /**
  * ConnectRPC routes definitions for this service.
@@ -13,66 +23,48 @@ export default (router, app) => {
   router.service(NotificationService, {
     async listNotifications(req) {
       return withConnectErrors(async () => {
-        const result = await notificationsService.listForUser(null, {
-          usuarioId: req.usuarioId,
-          estado: req.estado,
-          limit: req.limit || 5,
-        });
+        const request = ListNotificationsRequestDto.from(req);
+        const result = await notificationsService.listForUser(null, request);
 
-        return {
-          notifications: result.notifications,
-          unreadCount: result.unreadCount,
-        };
+        return ListNotificationsResponseDto.from(result).toConnect();
       });
     },
 
     async countUnread(req) {
       return withConnectErrors(async () => {
-        return notificationsService.countUnread(null, {
-          usuarioId: req.usuarioId,
-        });
+        const request = CountUnreadRequestDto.from(req);
+        const result = await notificationsService.countUnread(null, request);
+        return CountUnreadResponseDto.from(result).toConnect();
       });
     },
 
     async createNotification(req) {
       return withConnectErrors(async () => {
-        const notification = await notificationsService.createNotification({
-          usuarioId: req.usuarioId,
-          email: req.email,
-          identificacion: req.identificacion,
-          titulo: req.titulo,
-          mensaje: req.mensaje,
-          tipo: req.tipo,
-          canal: req.canal,
-          prioridad: req.prioridad,
-          iconId: req.iconId,
-        });
+        const request = CreateNotificationRequestDto.from(req);
+        const notification = await notificationsService.createNotification(request);
 
-        return {
-          success: true,
-          notification,
-        };
+        return NotificationResponseDto.from({ success: true, notification }).toConnect();
       });
     },
 
     async markAsRead(req) {
       return withConnectErrors(async () => {
-        const notification = await notificationsService.markAsRead(req.id, null, {
-          usuarioId: req.usuarioId,
-        });
+        const request = MarkReadRequestDto.from(req);
+        const notification = await notificationsService.markAsRead(
+          request.id,
+          null,
+          request,
+        );
 
-        return {
-          success: true,
-          notification,
-        };
+        return NotificationResponseDto.from({ success: true, notification }).toConnect();
       });
     },
 
     async markAllAsRead(req) {
       return withConnectErrors(async () => {
-        return notificationsService.markAllAsRead(null, {
-          usuarioId: req.usuarioId,
-        });
+        const request = MarkAllReadRequestDto.from(req);
+        const result = await notificationsService.markAllAsRead(null, request);
+        return result.toConnect();
       });
     },
   });
