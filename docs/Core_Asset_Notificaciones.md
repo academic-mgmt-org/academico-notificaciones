@@ -73,24 +73,27 @@ Estas funciones pertenecen a otros Core Assets.
 # 4. Ubicación en la Arquitectura
 
 ```text
-                  Gestión de Usuarios
+Cliente Web / Backend Web
+          │
+          │ Bearer JWT
+          ▼
+API Gateway
+          │
+          ├── Valida JWT con Authentication/Login
+          │
+          └── Reenvía solicitud autorizada
+              con x-api-key interno
+                  │
+                  ▼
+        academico-notificaciones
+                  │
+                  ▼
+        PostgreSQL academico.notificaciones
 
-                         │
-
-        ┌────────────────┴────────────────┐
-        │                                 │
-        ▼                                 ▼
-
- Authentication/Login              Notification Service
-        │                                 │
-        │ JWT                             │ REST + Connect/gRPC
-        ▼                                 ▼
-
- API Gateway  ───────────────►  academico-notificaciones
-        │                                 │
-        ▼                                 ▼
-
- Cliente Web                    PostgreSQL academico.notificaciones
+Authentication/Login
+          │
+          └── Lee identidad, estado y rol desde
+              academico.usuarios + academico.roles
 ```
 
 El Gateway registra el microservicio con el prefijo:
@@ -100,6 +103,15 @@ El Gateway registra el microservicio con el prefijo:
 ```
 
 El cliente web consume el gateway, no el microservicio directamente.
+
+Lectura correcta del flujo:
+
+- Para iniciar sesión, el cliente consume el endpoint de login expuesto por el Gateway o por el backend web que actúa como adaptador.
+- `Authentication/Login` valida credenciales y emite el JWT.
+- Para consultar notificaciones, el cliente ya autenticado llama al Gateway con `Authorization: Bearer <token>`.
+- El Gateway valida ese JWT contra `Authentication/Login`.
+- Si el token es válido, el Gateway reenvía la solicitud a `academico-notificaciones` agregando la API key interna.
+- `academico-notificaciones` no autentica credenciales; solo confía en el JWT validado y en la API key de comunicación interna.
 
 ---
 
