@@ -72,46 +72,61 @@ Estas funciones pertenecen a otros Core Assets.
 
 # 4. Ubicación en la Arquitectura
 
-```text
-Cliente Web / Backend Web
-          │
-          │ Bearer JWT
-          ▼
-API Gateway
-          │
-          ├── Valida JWT con Authentication/Login
-          │
-          └── Reenvía solicitud autorizada
-              con x-api-key interno
-                  │
-                  ▼
-        academico-notificaciones
-                  │
-                  ▼
-        PostgreSQL academico.notificaciones
+El `Notification Service` no administra el Gateway, no autentica credenciales y no administra usuarios. Su responsabilidad es gestionar notificaciones académicas para una identidad ya autenticada.
 
-Authentication/Login
-          │
-          └── Lee identidad, estado y rol desde
-              academico.usuarios + academico.roles
+```text
+Notification Service
+│
+├── Crear notificaciones
+├── Consultar notificaciones recientes
+├── Consultar contador de no leídas
+├── Marcar una notificación como leída
+├── Marcar todas las notificaciones como leídas
+└── Persistencia en academico.notificaciones
 ```
 
-El Gateway registra el microservicio con el prefijo:
+Sus conexiones con el resto de la plataforma son integraciones:
+
+```text
+Cliente consumidor
+(web, móvil, backend, gateway, otro microservicio)
+      │
+      │ Bearer JWT emitido por Authentication/Login
+      │ x-api-key interna del servicio
+      ▼
+academico-gateway / backend integrador (opcional)
+      │
+      │ REST o Connect/gRPC
+      ▼
+Notification Service
+      │
+      ├── Obtiene identidad desde el JWT recibido
+      │       email, identifier, userStudent, userProfessor
+      │
+      ├── Gestiona registros de notificación
+      │       en academico.notificaciones
+      │
+      └── Devuelve notificaciones, contadores
+              o cambios de estado al cliente integrador
+```
+
+El Gateway es una integración recomendada para exponer el servicio en la plataforma web/móvil, pero no es una dependencia interna del asset. Cuando se usa Gateway, registra el microservicio con el prefijo:
 
 ```text
 /notificaciones/*
 ```
 
-El cliente web consume el gateway, no el microservicio directamente.
+El cliente web de la plataforma consume actualmente el Gateway, no el microservicio directamente. Otros consumidores internos pueden invocar `academico-notificaciones` sin Gateway siempre que cumplan el contrato de seguridad del servicio.
 
 Lectura correcta del flujo:
 
-- Para iniciar sesión, el cliente consume el endpoint de login expuesto por el Gateway o por el backend web que actúa como adaptador.
-- `Authentication/Login` valida credenciales y emite el JWT.
-- Para consultar notificaciones, el cliente ya autenticado llama al Gateway con `Authorization: Bearer <token>`.
-- El Gateway valida ese JWT contra `Authentication/Login`.
-- Si el token es válido, el Gateway reenvía la solicitud a `academico-notificaciones` agregando la API key interna.
-- `academico-notificaciones` no autentica credenciales; solo confía en el JWT validado y en la API key de comunicación interna.
+- `Authentication/Login`: emite el JWT. No es administrado por `academico-notificaciones`.
+- `Gateway`: puede validar o enrutar solicitudes hacia `academico-notificaciones`. No es obligatorio para que el servicio exista ni para que sea reutilizable.
+- `Cliente integrador`: debe enviar un JWT compatible y la API key interna si llama directamente al servicio.
+- `academico.notificaciones`: es la tabla propia del asset y sí es gestionada por este servicio.
+- `Gestión de Usuarios`: mantiene el ciclo de vida del usuario. `academico-notificaciones` no crea ni modifica usuarios; solo usa la identidad presente en el JWT.
+
+El servicio es independiente desde el punto de vista funcional. Puede desplegarse y probarse como microservicio autónomo con REST o Connect/gRPC; en una arquitectura integrada, normalmente se publica detrás del Gateway para centralizar ruteo, validación transversal y exposición pública.
 
 ---
 
