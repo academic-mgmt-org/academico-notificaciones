@@ -621,12 +621,57 @@ US-6 Consultar notificaciones recientes
 ## Pipeline
 
 ```text
-1. npm install --legacy-peer-deps
-2. npm run build
-3. docker build -t academico-notificaciones
-4. docker compose up -d
-5. health check /api/health
-6. prueba web con Playwright
+Trigger:
+- Rama main.
+
+Stage Build:
+1. Ejecuta Docker@2 con command=buildAndPush.
+2. Construye la imagen desde Dockerfile.
+3. El Dockerfile ejecuta npm install --legacy-peer-deps y npm run build.
+4. Publica la imagen en Azure Container Registry:
+   acracademicoutn.azurecr.io/academicmgmtorgacademiconotificaciones:$(Build.BuildId)
+
+Stage DeployDevelopment:
+1. Corre en el agente self-hosted self-hosted-agent.
+2. Inicia sesión en Azure Container Registry.
+3. Valida variables de entorno requeridas.
+4. Conserva el PORT existente del .env remoto o usa 3003 como valor por defecto.
+5. Genera el .env del servicio en /home/azureuser/academico-notificaciones.
+6. Copia docker-compose.yml al directorio remoto.
+7. Detiene composiciones anteriores.
+8. Ejecuta docker compose pull.
+9. Ejecuta docker compose up -d --remove-orphans.
+10. Verifica que el contenedor academico-notificaciones quede en estado running.
+11. Ejecuta docker compose ps y docker image prune -f.
+
+Stage ApproveProduction:
+1. Espera aprobación manual antes de producción.
+2. Notifica y solicita aprobación a gacalderonr@utn.edu.ec.
+
+Stage DeployProduction:
+1. Corre en ubuntu-latest.
+2. Inicia sesión en Azure Container Registry.
+3. Usa PROD_SSH_PRIVATE_KEY_B64 para conectarse por SSH al servidor 20.115.132.131.
+4. Copia la autenticación de Docker/ACR al servidor de producción.
+5. Conserva el PORT existente del .env remoto o usa 3003 como valor por defecto.
+6. Genera el .env del servicio en /home/azureuser/academico-notificaciones.
+7. Copia docker-compose.yml al servidor.
+8. Detiene composiciones anteriores.
+9. Ejecuta docker compose pull.
+10. Ejecuta docker compose up -d --remove-orphans.
+11. Verifica que el contenedor academico-notificaciones quede en estado running.
+12. Ejecuta docker compose ps y docker image prune -f.
+
+Validaciones incluidas actualmente:
+- Build de la aplicación dentro de la imagen Docker.
+- Validación de variables de entorno requeridas.
+- Verificación de contenedor running después del despliegue.
+
+Validaciones no incluidas actualmente en azure-pipelines.yml:
+- npm test / Jest.
+- npm audit o escaneo de vulnerabilidades.
+- Health check HTTP contra /api/health.
+- Prueba web con Playwright.
 ```
 
 ---
@@ -634,7 +679,7 @@ US-6 Consultar notificaciones recientes
 ## Commit
 
 ```bash
-git commit -m "feat(notificaciones): implementar core asset de notificaciones AB#501"
+git commit -m "docs(notificaciones): document core asset completion AB#29"
 ```
 
 ---
@@ -644,7 +689,7 @@ git commit -m "feat(notificaciones): implementar core asset de notificaciones AB
 ```text
 Implementación Core Asset Notificaciones
 
-Fixes AB#501
+Fixes AB#29
 ```
 
 ---
