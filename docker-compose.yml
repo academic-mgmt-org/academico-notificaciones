@@ -1,0 +1,11 @@
+services:
+  academico-notificaciones:
+    image: ${ACADEMICO_NOTIFICACIONES_IMAGE}
+    container_name: academico-notificaciones
+    restart: always
+    ports:
+      - "${PORT}:${PORT}"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
