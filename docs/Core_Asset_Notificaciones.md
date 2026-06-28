@@ -601,7 +601,7 @@ Aplicar:
 Epic:
 
 ```text
-Gestión de Identidades
+Gestión de Notificaciones Académicas
 ```
 
 Feature:
@@ -613,7 +613,7 @@ Notificaciones Académicas
 Historia:
 
 ```text
-US-501 Consultar notificaciones recientes
+US-6 Consultar notificaciones recientes
 ```
 
 ---
