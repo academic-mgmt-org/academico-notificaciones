@@ -3,3 +3,4 @@ plugins:
   - plugin: buf.build/bufbuild/es
     out: src/gen
     opt: target=js
+ 
