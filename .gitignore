@@ -60,3 +60,4 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Local docs with hardcoded grpcurl credentials
 /docs/Endpoints_y_consultas_grpcurl.md
+docs/Notificaciones_Endpoints_Consultas.md
