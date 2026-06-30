@@ -58,6 +58,14 @@ function normalizeRequiredString(value, message) {
   return normalized;
 }
 
+function normalizeRequiredEmail(value, message) {
+  const normalized = normalizeRequiredString(value, message).toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+    throw new BadRequestException(message);
+  }
+  return normalized;
+}
+
 function normalizeNumericString(value, message) {
   const normalized = normalizeRequiredString(value, message);
   if (!/^\d+$/.test(normalized)) {
@@ -94,6 +102,20 @@ function normalizeMetadata(metadata) {
   return metadata && typeof metadata === 'object' && !Array.isArray(metadata)
     ? { ...metadata }
     : {};
+}
+
+function normalizeEmailMetadata(metadata) {
+  if (Array.isArray(metadata)) {
+    return metadata.reduce((acc, item) => {
+      const key = normalizeOptionalString(item?.key);
+      if (key) {
+        acc[key] = item?.value === undefined ? '' : String(item.value);
+      }
+      return acc;
+    }, {});
+  }
+
+  return normalizeMetadata(metadata);
 }
 
 function toIso(value) {
@@ -567,6 +589,150 @@ export class GenericNotificationResponseDto {
       success: this.success,
       message: this.message || '',
       affected: this.affected,
+    };
+  }
+}
+
+export class SendEmailRequestDto {
+  constructor({
+    usuarioId,
+    toEmail,
+    toName,
+    subject,
+    plainText,
+    html,
+    tipo,
+    prioridad,
+    source,
+    metadata,
+  }) {
+    assignIfDefined(this, 'usuarioId', usuarioId);
+    this.toEmail = toEmail;
+    assignIfDefined(this, 'toName', toName);
+    this.subject = subject;
+    assignIfDefined(this, 'plainText', plainText);
+    assignIfDefined(this, 'html', html);
+    this.tipo = tipo;
+    this.prioridad = prioridad;
+    this.source = source;
+    this.metadata = metadata;
+  }
+
+  static from(value = {}) {
+    if (value instanceof SendEmailRequestDto) {
+      return value;
+    }
+
+    if (!value || typeof value !== 'object') {
+      throw new BadRequestException('Datos de email requeridos');
+    }
+
+    const rawUsuarioId = pickFirst(value, [
+      'usuarioId',
+      'usuario_id',
+      'userId',
+      'user_id',
+    ]);
+    const usuarioId = rawUsuarioId
+      ? normalizeNumericString(rawUsuarioId, 'Usuario destinatario invalido')
+      : undefined;
+    const toEmail = normalizeRequiredEmail(
+      pickFirst(value, ['toEmail', 'to_email', 'email', 'correo', 'cuenta']),
+      'Correo electronico invalido',
+    );
+    const toName = normalizeOptionalString(
+      pickFirst(value, ['toName', 'to_name', 'nombre', 'name']),
+    );
+    const subject = normalizeRequiredString(
+      pickFirst(value, ['subject', 'asunto', 'titulo']),
+      'Asunto de email requerido',
+    );
+    const plainText = normalizeOptionalString(
+      pickFirst(value, ['plainText', 'plain_text', 'text', 'body', 'mensaje']),
+    );
+    const html = normalizeOptionalString(pickFirst(value, ['html', 'htmlBody']));
+
+    if (!plainText && !html) {
+      throw new BadRequestException('Contenido de email requerido');
+    }
+
+    const tipo =
+      normalizeOptionalString(pickFirst(value, ['tipo', 'type'])) || 'sistema';
+    const prioridad = normalizeNotificationPriority(
+      pickFirst(value, ['prioridad', 'priority']),
+    );
+    const source =
+      normalizeOptionalString(pickFirst(value, ['source', 'origen'])) ||
+      'academico-notificaciones';
+    const metadata = {
+      ...normalizeEmailMetadata(pickFirst(value, ['metadata', 'meta'])),
+      source,
+    };
+
+    return new SendEmailRequestDto({
+      usuarioId,
+      toEmail,
+      toName,
+      subject,
+      plainText,
+      html,
+      tipo,
+      prioridad,
+      source,
+      metadata,
+    });
+  }
+
+  metadataToConnect() {
+    return Object.entries(this.metadata || {}).map(([key, value]) => ({
+      key,
+      value: value === undefined ? '' : String(value),
+    }));
+  }
+
+  toConnect() {
+    return {
+      usuarioId: this.usuarioId || '',
+      toEmail: this.toEmail,
+      toName: this.toName || '',
+      subject: this.subject,
+      plainText: this.plainText || '',
+      html: this.html || '',
+      tipo: this.tipo,
+      prioridad: this.prioridad,
+      source: this.source,
+      metadata: this.metadataToConnect(),
+    };
+  }
+}
+
+export class SendEmailResponseDto {
+  constructor({ success = true, message, provider, messageId }) {
+    this.success = Boolean(success);
+    this.message = message || '';
+    this.provider = provider || '';
+    this.messageId = messageId || '';
+  }
+
+  static from(value = {}) {
+    if (value instanceof SendEmailResponseDto) {
+      return value;
+    }
+
+    return new SendEmailResponseDto({
+      success: value.success,
+      message: value.message,
+      provider: value.provider,
+      messageId: pickFirst(value, ['messageId', 'message_id']),
+    });
+  }
+
+  toConnect() {
+    return {
+      success: this.success,
+      message: this.message,
+      provider: this.provider,
+      messageId: this.messageId,
     };
   }
 }

@@ -6,6 +6,8 @@ import {
   NotificationDto,
   NotificationResponseDto,
   RecentNotificationsRequestDto,
+  SendEmailRequestDto,
+  SendEmailResponseDto,
 } from './notifications.dto';
 
 describe('Notifications DTOs', () => {
@@ -108,5 +110,77 @@ describe('Notifications DTOs', () => {
       });
 
     Date.now.mockRestore();
+  });
+
+  it('normaliza SendEmailRequestDto generico y respuesta Connect', () => {
+    const request = SendEmailRequestDto.from({
+      usuario_id: '7',
+      to_email: ' ESTUDIANTE@UTN.EDU.EC ',
+      to_name: ' Estudiante Prueba ',
+      subject: ' Recuperacion de contraseña ',
+      plain_text: 'Contenido en texto',
+      html: '<p>Contenido HTML</p>',
+      type: 'seguridad',
+      priority: 'alta',
+      source: 'academico-login',
+      metadata: [
+        { key: 'resetUrl', value: 'https://academico.test/reset?token=abc' },
+        { key: 'expiresInMinutes', value: '45' },
+      ],
+    });
+
+    expect(request).toMatchObject({
+      usuarioId: '7',
+      toEmail: 'estudiante@utn.edu.ec',
+      toName: 'Estudiante Prueba',
+      subject: 'Recuperacion de contraseña',
+      plainText: 'Contenido en texto',
+      html: '<p>Contenido HTML</p>',
+      tipo: 'seguridad',
+      prioridad: 'alta',
+      source: 'academico-login',
+      metadata: {
+        resetUrl: 'https://academico.test/reset?token=abc',
+        expiresInMinutes: '45',
+        source: 'academico-login',
+      },
+    });
+    expect(request.toConnect()).toMatchObject({
+      usuarioId: '7',
+      toEmail: 'estudiante@utn.edu.ec',
+      metadata: expect.arrayContaining([
+        { key: 'resetUrl', value: 'https://academico.test/reset?token=abc' },
+      ]),
+    });
+
+    expect(SendEmailResponseDto.from({
+      success: true,
+      message: 'ok',
+      provider: 'log',
+      message_id: 'msg-1',
+    }).toConnect()).toEqual({
+      success: true,
+      message: 'ok',
+      provider: 'log',
+      messageId: 'msg-1',
+    });
+  });
+
+  it('rechaza email generico invalido', () => {
+    expect(() =>
+      SendEmailRequestDto.from({
+        usuario_id: '7',
+        to_email: 'correo-invalido',
+        subject: 'Aviso',
+        plain_text: 'Contenido',
+      }),
+    ).toThrow(BadRequestException);
+
+    expect(() =>
+      SendEmailRequestDto.from({
+        to_email: 'estudiante@utn.edu.ec',
+        subject: 'Aviso',
+      }),
+    ).toThrow(BadRequestException);
   });
 });

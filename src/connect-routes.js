@@ -1,5 +1,6 @@
 import { ConnectError, Code } from '@connectrpc/connect';
 import {
+  EmailService,
   HealthService,
   NotificationService,
 } from './gen/notificaciones/v1/notificaciones_pb.js';
@@ -14,6 +15,8 @@ import {
   MarkReadRequestDto,
   NotificationResponseDto,
   RecentNotificationsRequestDto,
+  SendEmailRequestDto,
+  SendEmailResponseDto,
 } from './notifications/dto/notifications.dto.js';
 
 /**
@@ -78,6 +81,17 @@ export default (router, app) => {
         const request = MarkAllReadRequestDto.from(req);
         const result = await notificationsService.markAllAsRead(null, request);
         return result.toConnect();
+      });
+    },
+
+  });
+
+  router.service(EmailService, {
+    async sendEmail(req) {
+      return withConnectErrors(async () => {
+        const request = SendEmailRequestDto.from(req);
+        const result = await notificationsService.sendEmail(request);
+        return SendEmailResponseDto.from(result).toConnect();
       });
     },
   });

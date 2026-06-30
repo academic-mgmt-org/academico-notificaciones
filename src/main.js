@@ -40,6 +40,11 @@ async function bootstrap() {
           return await next(req);
         }
 
+        if (isInternalEmailRequest(req)) {
+          validateApiKey(req);
+          return await next(req);
+        }
+
         // 1. Validar Bearer Token (Requerido para todas las peticiones, incluyendo reflexión)
         const authHeader = req.header.get('authorization');
         if (!authHeader) {
@@ -75,14 +80,7 @@ async function bootstrap() {
           return await next(req);
         }
 
-        const apiKey = req.header.get('x-api-key');
-        const expectedApiKey = process.env.NOTIFICACIONES_API_KEY;
-        if (!apiKey || apiKey !== expectedApiKey) {
-          throw new ConnectError(
-            'Acceso no autorizado: API Key inválida o no provista',
-            Code.Unauthenticated,
-          );
-        }
+        validateApiKey(req);
 
         return await next(req);
       },
@@ -100,3 +98,23 @@ async function bootstrap() {
   logger.log(`Microservicio academico-notificaciones corriendo en puerto ${port} (HTTP/2 Fastify habilitado)`);
 }
 bootstrap();
+
+function isInternalEmailRequest(req) {
+  return (
+    req.service?.typeName === 'notificaciones.v1.EmailService' &&
+    ['SendEmail', 'sendEmail'].includes(
+      req.method?.name || req.method?.localName,
+    )
+  );
+}
+
+function validateApiKey(req) {
+  const apiKey = req.header.get('x-api-key');
+  const expectedApiKey = process.env.NOTIFICACIONES_API_KEY;
+  if (!apiKey || apiKey !== expectedApiKey) {
+    throw new ConnectError(
+      'Acceso no autorizado: API Key inválida o no provista',
+      Code.Unauthenticated,
+    );
+  }
+}

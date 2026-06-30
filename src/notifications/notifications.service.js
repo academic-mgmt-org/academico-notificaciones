@@ -1,9 +1,11 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import getPool from '../db';
+import { EmailSenderService } from './email-sender.service';
 import {
   CountUnreadRequestDto,
   CountUnreadResponseDto,
@@ -16,6 +18,8 @@ import {
   NotificationDto,
   NotificationRecipientDto,
   RecentNotificationsRequestDto,
+  SendEmailRequestDto,
+  SendEmailResponseDto,
   normalizeNotificationPriority,
   normalizeNotificationState,
   relativeNotificationTime,
@@ -23,7 +27,8 @@ import {
 
 @Injectable()
 export class NotificationsService {
-  constructor() {
+  constructor(@Inject(EmailSenderService) emailSender) {
+    this.emailSender = emailSender;
     this.pool = getPool();
   }
 
@@ -248,6 +253,39 @@ export class NotificationsService {
       affected: result.rowCount,
       message: 'Notificaciones marcadas como leidas',
     });
+  }
+
+  async sendEmail(payload = {}) {
+    const request = SendEmailRequestDto.from(payload);
+    const emailResult = await this.emailSender.sendEmail({
+      to: request.toEmail,
+      toName: request.toName,
+      subject: request.subject,
+      text: request.plainText,
+      html: request.html,
+      metadata: request.metadata,
+    });
+
+    if (request.usuarioId) {
+      await this.createNotification({
+        usuarioId: request.usuarioId,
+        titulo: request.subject,
+        mensaje: request.plainText || 'Se envio un correo electronico.',
+        tipo: request.tipo,
+        canal: 'email',
+        prioridad: request.prioridad,
+        iconId: 'i-mail',
+        metadata: {
+          ...request.metadata,
+          provider: emailResult.provider,
+          messageId: emailResult.messageId,
+          toEmail: request.toEmail,
+        },
+        source: request.source,
+      });
+    }
+
+    return SendEmailResponseDto.from(emailResult);
   }
 
   normalizeState(state) {

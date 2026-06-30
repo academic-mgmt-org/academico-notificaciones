@@ -52,6 +52,8 @@ Este servicio será responsable de:
 
 ✅ Script SQL idempotente
 
+✅ Envio de correo transaccional interno para recuperacion de contraseña
+
 ---
 
 ## No Incluye
@@ -62,7 +64,7 @@ Este servicio será responsable de:
 
 ❌ Gestión de usuarios
 
-❌ Envío SMTP/SMS/push externo
+❌ SMS, push externo o campañas masivas
 
 ❌ Auditoría transversal
 
