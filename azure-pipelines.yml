@@ -29,6 +29,7 @@ stages:
         containerRegistry: 5cffc302-0a35-4b2b-8ea1-04a9ebd67c07
         tags: |
           $(tag)
+          latest
         addPipelineData: false
 
 - stage: DeployDevelopment
