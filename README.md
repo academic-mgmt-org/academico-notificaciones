@@ -52,7 +52,7 @@ Este servicio será responsable de:
 
 ✅ Script SQL idempotente
 
-✅ Envio de correo transaccional interno para recuperacion de contraseña
+✅ Envio de correo transaccional interno mediante `EmailService.SendEmail`
 
 ---
 
