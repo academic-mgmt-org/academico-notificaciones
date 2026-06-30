@@ -860,3 +860,94 @@ Objetivo:
 ```text
 Validar login, dashboard, badge, lista de últimas notificaciones y endpoint protegido vía Gateway.
 ```
+
+---
+
+# 20. Levantar el servicio con Docker
+
+Este repositorio incluye el script `scripts/levantar-notificaciones-docker.sh` para instalar Docker si no existe, descargar la imagen publicada y levantar el servicio con `docker compose`.
+
+## 20.1. Clonar el repositorio
+
+```bash
+git clone https://github.com/academic-mgmt-org/academico-notificaciones.git
+cd academico-notificaciones
+```
+
+## 20.2. Dar permisos de ejecución al script
+
+```bash
+chmod +x ./scripts/levantar-notificaciones-docker.sh
+```
+
+## 20.3. Preparar Docker y descargar la imagen
+
+El script instala Docker y Docker Compose cuando no están disponibles, crea `.env` desde `.env.example` si todavía no existe, agrega los valores mínimos requeridos por `docker-compose.yml` y ejecuta:
+
+```bash
+docker pull guical96/academico-notificaciones:latest
+```
+
+Para instalar Docker y descargar la imagen sin levantar el contenedor:
+
+```bash
+./scripts/levantar-notificaciones-docker.sh --pull-only
+```
+
+## 20.4. Configurar variables de entorno
+
+Antes de levantar el servicio, completa `.env` con las variables de la base de datos y seguridad. El script no sobrescribe valores existentes.
+
+Valores mínimos:
+
+```bash
+ACADEMICO_NOTIFICACIONES_IMAGE=guical96/academico-notificaciones:latest
+PORT=3003
+NODE_ENV=production
+ENV=production
+NOTIFICACIONES_API_KEY=valor_seguro_para_consumidores_internos
+NOTIFICACIONES_AUTO_SEED=true
+JWT_DOC_SECRET=secreto_jwt_compartido
+
+DB_HOST=host_postgresql
+DB_PORT=5432
+DB_DATABASE=nombre_base
+DB_USER=usuario_base
+DB_PASSWORD=password_base
+DB_SSLMODE=require
+```
+
+Si PostgreSQL no usa SSL, cambia:
+
+```bash
+DB_SSLMODE=disable
+```
+
+## 20.5. Levantar el servicio
+
+Con `.env` completo, ejecuta:
+
+```bash
+./scripts/levantar-notificaciones-docker.sh
+```
+
+El script ejecuta internamente:
+
+```bash
+docker compose -f docker-compose.yml up -d --remove-orphans
+```
+
+## 20.6. Verificar el despliegue
+
+```bash
+docker compose ps
+docker logs -f academico-notificaciones
+```
+
+El servicio debe quedar expuesto en el puerto definido por `PORT`, por defecto:
+
+```text
+http://localhost:3003
+```
+
+Si el usuario actual no pertenece al grupo `docker`, el script usa `sudo` para la instalación y ejecución. Para usar Docker sin `sudo` en futuras sesiones, agrega el usuario al grupo `docker` y vuelve a iniciar sesión.
