@@ -9,4 +9,9 @@ services:
       - .env
     environment:
       - NODE_ENV=production        
+    networks:
+      - academico-backend
     
+networks:
+  academico-backend:
+    external: true
