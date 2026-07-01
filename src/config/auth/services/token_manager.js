@@ -18,6 +18,8 @@ export class TokenManager {
                 throw new UnauthorizedException('Token inválido');
             }
             return {
+                userId: payload['userId'] || payload['sub'],
+                sub: payload['sub'],
                 cuenta: payload['userStudent'] || payload['email'] || payload['identifier'],
                 cedula: payload['identifier'],
                 identifier: payload['identifier'],

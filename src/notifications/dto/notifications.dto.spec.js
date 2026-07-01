@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import {
+  CountUnreadRequestDto,
   CreateNotificationRequestDto,
   ListNotificationsRequestDto,
   MarkReadRequestDto,
@@ -32,6 +33,33 @@ describe('Notifications DTOs', () => {
     });
   });
 
+  it('usa el usuario autenticado cuando la consulta no envia usuario_id', () => {
+    const user = {
+      userId: '42',
+      email: 'estudiante@utn.edu.ec',
+      identifier: '1002003004',
+    };
+
+    expect(ListNotificationsRequestDto.from({ limit: 10 }, { user }))
+      .toMatchObject({
+        usuarioId: '42',
+        limit: 10,
+      });
+    expect(RecentNotificationsRequestDto.from({}, { user }))
+      .toMatchObject({
+        usuarioId: '42',
+        limit: 3,
+      });
+    expect(CountUnreadRequestDto.from({}, { user }))
+      .toMatchObject({
+        usuarioId: '42',
+      });
+    expect(ListNotificationsRequestDto.from({ usuario_id: '99' }, { user }))
+      .toMatchObject({
+        usuarioId: '42',
+      });
+  });
+
   it('normaliza CreateNotificationRequestDto desde camelCase y snake_case', () => {
     const dto = CreateNotificationRequestDto.from({
       usuario_id: '7',
@@ -56,6 +84,22 @@ describe('Notifications DTOs', () => {
         iconId: 'i-list',
         source: 'academico-notificaciones',
       },
+    });
+  });
+
+  it('conserva destinatario explicito al crear notificaciones', () => {
+    const dto = CreateNotificationRequestDto.from({
+      usuario_id: '99',
+      titulo: 'Aviso',
+      mensaje: 'Contenido',
+    }, {
+      user: { userId: '42', email: 'estudiante@utn.edu.ec' },
+    });
+
+    expect(dto).toMatchObject({
+      usuarioId: '99',
+      titulo: 'Aviso',
+      mensaje: 'Contenido',
     });
   });
 

@@ -155,18 +155,27 @@ export class NotificationRecipientDto {
     assignIfDefined(this, 'identificacion', identificacion);
   }
 
-  static from(value = {}, { user = null } = {}) {
+  static from(value = {}, { user = null, preferUser = false } = {}) {
     if (value instanceof NotificationRecipientDto) {
       return value;
     }
 
-    const rawUsuarioId = pickFirst(value, [
+    const requestUsuarioId = pickFirst(value, [
       'usuarioId',
       'usuario_id',
       'usuarioID',
       'userId',
       'user_id',
     ]);
+    const authenticatedUsuarioId =
+      user?.usuarioId ||
+      user?.usuario_id ||
+      user?.userId ||
+      user?.user_id ||
+      user?.sub;
+    const rawUsuarioId = preferUser
+      ? authenticatedUsuarioId || requestUsuarioId
+      : requestUsuarioId || authenticatedUsuarioId;
     const usuarioId = rawUsuarioId
       ? normalizeNumericString(rawUsuarioId, 'Usuario destinatario invalido')
       : undefined;
@@ -211,7 +220,10 @@ export class ListNotificationsRequestDto {
       return value;
     }
 
-    const recipient = NotificationRecipientDto.from(value, { user });
+    const recipient = NotificationRecipientDto.from(value, {
+      user,
+      preferUser: Boolean(user),
+    });
 
     return new ListNotificationsRequestDto({
       usuarioId: recipient.usuarioId,
@@ -255,7 +267,10 @@ export class CountUnreadRequestDto {
       return value;
     }
 
-    const recipient = NotificationRecipientDto.from(value, { user });
+    const recipient = NotificationRecipientDto.from(value, {
+      user,
+      preferUser: Boolean(user),
+    });
     return new CountUnreadRequestDto(recipient);
   }
 }
@@ -362,7 +377,10 @@ export class MarkReadRequestDto {
       id ?? pickFirst(value, ['id', 'notificationId', 'notification_id']),
       'Id de notificacion invalido',
     );
-    const recipient = NotificationRecipientDto.from(value, { user });
+    const recipient = NotificationRecipientDto.from(value, {
+      user,
+      preferUser: Boolean(user),
+    });
 
     return new MarkReadRequestDto({
       id: notificationId,
@@ -385,7 +403,10 @@ export class MarkAllReadRequestDto {
       return value;
     }
 
-    const recipient = NotificationRecipientDto.from(value, { user });
+    const recipient = NotificationRecipientDto.from(value, {
+      user,
+      preferUser: Boolean(user),
+    });
     return new MarkAllReadRequestDto(recipient);
   }
 }

@@ -8,6 +8,7 @@ import { ConnectError, Code } from '@connectrpc/connect';
 import connectRoutes from './connect-routes';
 import * as path from 'path';
 import { TokenManager } from './config/auth/services/token_manager';
+import { authenticatedUserContextKey } from './auth-context';
 config();
 
 async function bootstrap() {
@@ -67,7 +68,8 @@ async function bootstrap() {
         }
 
         try {
-          await tokenManager.getPayload(token);
+          const authenticatedUser = await tokenManager.getPayload(token);
+          req.contextValues.set(authenticatedUserContextKey, authenticatedUser);
         } catch (error) {
           throw new ConnectError(
             'Acceso no autorizado: Token inválido o expirado',

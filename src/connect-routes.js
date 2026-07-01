@@ -18,6 +18,7 @@ import {
   SendEmailRequestDto,
   SendEmailResponseDto,
 } from './notifications/dto/notifications.dto.js';
+import { getAuthenticatedUser } from './auth-context.js';
 
 /**
  * ConnectRPC routes definitions for this service.
@@ -28,47 +29,52 @@ export default (router, app) => {
   const notificationsService = app.get(NotificationsService);
 
   router.service(NotificationService, {
-    async listNotifications(req) {
+    async listNotifications(req, context) {
       return withConnectErrors(async () => {
-        const request = ListNotificationsRequestDto.from(req);
-        const result = await notificationsService.listForUser(null, request);
+        const user = getAuthenticatedUser(context);
+        const request = ListNotificationsRequestDto.from(req, { user });
+        const result = await notificationsService.listForUser(user, request);
 
         return ListNotificationsResponseDto.from(result).toConnect();
       });
     },
 
-    async recentNotifications(req) {
+    async recentNotifications(req, context) {
       return withConnectErrors(async () => {
-        const request = RecentNotificationsRequestDto.from(req);
-        const result = await notificationsService.recentForUser(null, request);
+        const user = getAuthenticatedUser(context);
+        const request = RecentNotificationsRequestDto.from(req, { user });
+        const result = await notificationsService.recentForUser(user, request);
 
         return ListNotificationsResponseDto.from(result).toConnect();
       });
     },
 
-    async countUnread(req) {
+    async countUnread(req, context) {
       return withConnectErrors(async () => {
-        const request = CountUnreadRequestDto.from(req);
-        const result = await notificationsService.countUnread(null, request);
+        const user = getAuthenticatedUser(context);
+        const request = CountUnreadRequestDto.from(req, { user });
+        const result = await notificationsService.countUnread(user, request);
         return CountUnreadResponseDto.from(result).toConnect();
       });
     },
 
-    async createNotification(req) {
+    async createNotification(req, context) {
       return withConnectErrors(async () => {
-        const request = CreateNotificationRequestDto.from(req);
-        const notification = await notificationsService.createNotification(request);
+        const user = getAuthenticatedUser(context);
+        const request = CreateNotificationRequestDto.from(req, { user });
+        const notification = await notificationsService.createNotification(request, user);
 
         return NotificationResponseDto.from({ success: true, notification }).toConnect();
       });
     },
 
-    async markAsRead(req) {
+    async markAsRead(req, context) {
       return withConnectErrors(async () => {
-        const request = MarkReadRequestDto.from(req);
+        const user = getAuthenticatedUser(context);
+        const request = MarkReadRequestDto.from(req, { user });
         const notification = await notificationsService.markAsRead(
           request.id,
-          null,
+          user,
           request,
         );
 
@@ -76,10 +82,11 @@ export default (router, app) => {
       });
     },
 
-    async markAllAsRead(req) {
+    async markAllAsRead(req, context) {
       return withConnectErrors(async () => {
-        const request = MarkAllReadRequestDto.from(req);
-        const result = await notificationsService.markAllAsRead(null, request);
+        const user = getAuthenticatedUser(context);
+        const request = MarkAllReadRequestDto.from(req, { user });
+        const result = await notificationsService.markAllAsRead(user, request);
         return result.toConnect();
       });
     },
