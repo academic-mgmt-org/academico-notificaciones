@@ -51,17 +51,22 @@ export class EmailSenderService {
     }
 
     const client = this.getAzureClient(connectionString);
-    const poller = await client.beginSend({
-      senderAddress,
-      content: {
-        subject: message.subject,
-        plainText: message.text,
-        html: message.html,
+    const poller = await client.beginSend(
+      {
+        senderAddress,
+        content: {
+          subject: message.subject,
+          plainText: message.text,
+          html: message.html,
+        },
+        recipients: {
+          to: [{ address: message.to }],
+        },
       },
-      recipients: {
-        to: [{ address: message.to }],
+      {
+        updateIntervalInMs: this.getAzurePollIntervalMs(),
       },
-    });
+    );
     const result = await poller.pollUntilDone();
 
     return {
@@ -90,6 +95,14 @@ export class EmailSenderService {
     )
       .trim()
       .toLowerCase();
+  }
+
+  getAzurePollIntervalMs() {
+    const parsed = parseInt(
+      process.env.AZURE_EMAIL_POLL_INTERVAL_MS || '100',
+      10,
+    );
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 100;
   }
 
 }
