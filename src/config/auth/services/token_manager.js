@@ -14,7 +14,7 @@ export class TokenManager {
     }
 
     async getPayload(token) {
-        if (process.env.ENV === 'dev' && !process.env.AUTH_GATEWAY_TARGET && !process.env.BASE_URL) {
+        if (process.env.ENV === 'dev' && !this.getGatewayTarget()) {
             return { cuenta: token, cedula: token?.substring(1), email: token };
         }
 
@@ -106,9 +106,22 @@ export class TokenManager {
 
     getGatewayTarget() {
         return (
-            process.env.AUTH_GATEWAY_TARGET ||
+            this.normalizeGrpcTarget(process.env.AUTH_GATEWAY_TARGET) ||
             this.grpcTargetFromBaseUrl(process.env.BASE_URL)
         );
+    }
+
+    normalizeGrpcTarget(value) {
+        if (!value) {
+            return '';
+        }
+
+        const target = String(value).trim().replace(/\/+$/, '');
+        if (!target || /^\$\([^)]+\)$/.test(target)) {
+            return '';
+        }
+
+        return target;
     }
 
     grpcTargetFromBaseUrl(baseUrl) {

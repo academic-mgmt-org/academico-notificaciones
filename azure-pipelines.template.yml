@@ -153,9 +153,7 @@ stages:
         require_env() {
           local name="$1"
           local value="${!name:-}"
-          local unresolved_prefix
-          unresolved_prefix="$""("
-          if [ -z "$value" ] || [ "$value" = "${unresolved_prefix}${name})" ]; then
+          if [ -z "$value" ] || [[ "$value" == '$('*')' ]]; then
             echo "Pipeline/runtime variable is not set: $name. Define it in the YAML env block or Azure DevOps variables before running this pipeline."
             exit 1
           fi
@@ -204,9 +202,7 @@ stages:
         require_env() {
           local name="$1"
           local value="${!name:-}"
-          local unresolved_prefix
-          unresolved_prefix="$""("
-          if [ -z "$value" ] || [ "$value" = "${unresolved_prefix}${name})" ]; then
+          if [ -z "$value" ] || [[ "$value" == '$('*')' ]]; then
             echo "Pipeline/runtime variable is not set: $name. Define it in the YAML env block or Azure DevOps variables before running this pipeline."
             exit 1
           fi
@@ -228,7 +224,8 @@ stages:
 
         require_env() {
           local name="$1"
-          if [ -z "${!name:-}" ]; then
+          local value="${!name:-}"
+          if [ -z "$value" ] || [[ "$value" == '$('*')' ]]; then
             echo "Pipeline/runtime variable is not set: $name. Define it in the YAML env block or Azure DevOps variables before running this pipeline."
             exit 1
           fi
@@ -464,9 +461,7 @@ stages:
         require_env() {
           local name="$1"
           local value="${!name:-}"
-          local unresolved_prefix
-          unresolved_prefix="$""("
-          if [ -z "$value" ] || [ "$value" = "${unresolved_prefix}${name})" ]; then
+          if [ -z "$value" ] || [[ "$value" == '$('*')' ]]; then
             echo "Pipeline/runtime variable is not set: $name. Define it in the YAML env block or Azure DevOps variables before running this pipeline."
             exit 1
           fi
@@ -488,7 +483,8 @@ stages:
 
         require_env() {
           local name="$1"
-          if [ -z "${!name:-}" ]; then
+          local value="${!name:-}"
+          if [ -z "$value" ] || [[ "$value" == '$('*')' ]]; then
             echo "Pipeline/runtime variable is not set: $name. Define it in the YAML env block or Azure DevOps variables before running this pipeline."
             exit 1
           fi

@@ -102,6 +102,19 @@ describe('TokenManager', () => {
         );
     });
 
+    it('ignora macros de Azure DevOps sin resolver y usa BASE_URL como respaldo', () => {
+        process.env = {
+            ...previousEnv,
+            ENV: 'prod',
+            AUTH_GATEWAY_TARGET: '$(DEV_AUTH_GATEWAY_TARGET)',
+            BASE_URL: 'https://academia-dev.eastus2.cloudapp.azure.com',
+        };
+
+        expect(new TokenManager().getGatewayTarget()).toBe(
+            'academia-dev.eastus2.cloudapp.azure.com:50050',
+        );
+    });
+
     it('rechaza tokens revocados o invalidos reportados por login via gateway', async () => {
         mockValidateToken.mockImplementation((_request, _options, callback) => {
             callback(null, { isValid: false });
