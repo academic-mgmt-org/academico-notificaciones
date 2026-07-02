@@ -60,7 +60,7 @@ parameters:
 
 - name: prodSshHost
   type: string
-  default: '20.115.132.131'
+  default: '$(PROD_SSH_HOST)'
 
 - name: prodSshUser
   type: string

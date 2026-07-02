@@ -308,7 +308,7 @@ stages:
         DB_SSLMODE: $(DB_SSLMODE)
         NOTIFICACIONES_API_KEY: $(NOTIFICACIONES_API_KEY)
         NOTIFICACIONES_AUTO_SEED: $(NOTIFICACIONES_AUTO_SEED)
-        AUTH_GATEWAY_TARGET: 20.122.210.230:50050
+        AUTH_GATEWAY_TARGET: $(DEV_AUTH_GATEWAY_TARGET)
         JWT_SECRET: $(JWT_SECRET)
         JWT_DOC_SECRET: $(JWT_DOC_SECRET)
 
@@ -329,7 +329,7 @@ stages:
         notifyUsers: gacalderonr@utn.edu.ec
         approvers: gacalderonr@utn.edu.ec
         allowApproversToApproveTheirOwnRuns: true
-        instructions: Approve to deploy academico-notificaciones to production server 20.115.132.131.
+        instructions: Approve to deploy academico-notificaciones to production server $(PROD_SSH_HOST).
         onTimeout: reject
 
 - stage: DeployProduction
@@ -582,7 +582,7 @@ stages:
         IMAGE_REPOSITORY: academicmgmtorgacademiconotificaciones
         TAG: $(tag)
         CONTAINER_NAME: academico-notificaciones
-        PROD_SSH_HOST: 20.115.132.131
+        PROD_SSH_HOST: $(PROD_SSH_HOST)
         PROD_SSH_USER: azureuser
         REMOTE_APP_PATH: /home/azureuser/academico-notificaciones
         PROD_COMPOSE_FILE: docker-compose.yml
@@ -601,6 +601,6 @@ stages:
         DB_SSLMODE: $(DB_SSLMODE)
         NOTIFICACIONES_API_KEY: $(NOTIFICACIONES_API_KEY)
         NOTIFICACIONES_AUTO_SEED: $(NOTIFICACIONES_AUTO_SEED)
-        AUTH_GATEWAY_TARGET: 20.96.156.43:50050
+        AUTH_GATEWAY_TARGET: $(PROD_AUTH_GATEWAY_TARGET)
         JWT_SECRET: $(JWT_SECRET)
         JWT_DOC_SECRET: $(JWT_DOC_SECRET)
