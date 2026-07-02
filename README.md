@@ -14,6 +14,28 @@
 
 ---
 
+## Azure Pipelines
+
+El pipeline usa Docker CLI para construir y publicar la imagen en Azure Container
+Registry, evitando la dependencia del task `Docker@2`.
+
+El pipeline requiere estas variables secretas en Azure DevOps:
+
+- `ACR_USERNAME`
+- `ACR_PASSWORD`
+
+Los valores deben corresponder a una identidad con permisos de push/pull sobre
+`acracademicoutn.azurecr.io`. La opcion recomendada es usar un service principal
+con rol `AcrPush` limitado al registry:
+
+```bash
+ACR_ID="$(az acr show --name acracademicoutn --query id -o tsv)"
+az ad sp create-for-rbac \
+  --name academico-notificaciones-acr-push \
+  --role AcrPush \
+  --scopes "$ACR_ID"
+```
+
 # 2. Objetivo
 
 Centralizar la creación, consulta y gestión de notificaciones académicas reutilizables para cualquier línea de producto.
@@ -709,7 +731,7 @@ Trigger:
 - Rama main.
 
 Stage Build:
-1. Ejecuta Docker@2 con command=buildAndPush.
+1. Inicia sesión en Azure Container Registry con Docker CLI.
 2. Construye la imagen desde Dockerfile.
 3. El Dockerfile ejecuta npm install --legacy-peer-deps y npm run build.
 4. Publica la imagen en Azure Container Registry:
