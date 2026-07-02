@@ -5,7 +5,8 @@
 # 2. Adjust the parameters below for the service name, image repository,
 #    compose file, paths, ports and environment variables.
 # 3. Create the referenced secret variables in Azure DevOps before running
-#    the pipeline. Example: DB_PASSWORD, NOTIFICACIONES_API_KEY, JWT_SECRET.
+#    the pipeline. Example: ACR_USERNAME, ACR_PASSWORD, DB_PASSWORD,
+#    NOTIFICACIONES_API_KEY, JWT_SECRET.
 #
 # Runtime model:
 # - Build runs on an Azure hosted agent and pushes the image to ACR.
@@ -146,17 +147,44 @@ stages:
     pool:
       vmImage: ${{ parameters.vmImageName }}
     steps:
-    - task: Docker@2
-      displayName: Build and push an image to container registry
-      inputs:
-        command: buildAndPush
-        repository: ${{ parameters.imageRepository }}
-        dockerfile: ${{ parameters.dockerfilePath }}
-        containerRegistry: ${{ parameters.dockerRegistryServiceConnection }}
-        tags: |
-          $(tag)
-          latest
-        addPipelineData: false
+    - script: |
+        set -euo pipefail
+
+        require_env() {
+          local name="$1"
+          local value="${!name:-}"
+          local unresolved_prefix
+          unresolved_prefix="$""("
+          if [ -z "$value" ] || [ "$value" = "${unresolved_prefix}${name})" ]; then
+            echo "Missing required environment variable: $name"
+            exit 1
+          fi
+        }
+
+        require_env ACR_USERNAME
+        require_env ACR_PASSWORD
+
+        IMAGE="${CONTAINER_REGISTRY}/${IMAGE_REPOSITORY}:${TAG}"
+        LATEST_IMAGE="${CONTAINER_REGISTRY}/${IMAGE_REPOSITORY}:latest"
+
+        echo "Logging in to ${CONTAINER_REGISTRY}..."
+        printf '%s' "$ACR_PASSWORD" | docker login "$CONTAINER_REGISTRY" --username "$ACR_USERNAME" --password-stdin
+
+        echo "Building ${IMAGE}..."
+        docker build --file "$DOCKERFILE_PATH" --tag "$IMAGE" --tag "$LATEST_IMAGE" "$BUILD_CONTEXT"
+
+        echo "Pushing ${IMAGE}..."
+        docker push "$IMAGE"
+        docker push "$LATEST_IMAGE"
+      displayName: Build and push image with Docker CLI
+      env:
+        CONTAINER_REGISTRY: ${{ parameters.containerRegistry }}
+        IMAGE_REPOSITORY: ${{ parameters.imageRepository }}
+        TAG: $(tag)
+        DOCKERFILE_PATH: ${{ parameters.dockerfilePath }}
+        BUILD_CONTEXT: $(Build.SourcesDirectory)
+        ACR_USERNAME: $(ACR_USERNAME)
+        ACR_PASSWORD: $(ACR_PASSWORD)
 
 - stage: DeployDevelopment
   displayName: Deploy to development
@@ -170,11 +198,30 @@ stages:
       demands:
       - Agent.Name -equals ${{ parameters.devAgentName }}
     steps:
-    - task: Docker@2
+    - script: |
+        set -euo pipefail
+
+        require_env() {
+          local name="$1"
+          local value="${!name:-}"
+          local unresolved_prefix
+          unresolved_prefix="$""("
+          if [ -z "$value" ] || [ "$value" = "${unresolved_prefix}${name})" ]; then
+            echo "Missing required environment variable: $name"
+            exit 1
+          fi
+        }
+
+        require_env ACR_USERNAME
+        require_env ACR_PASSWORD
+
+        echo "Logging in to ${CONTAINER_REGISTRY}..."
+        printf '%s' "$ACR_PASSWORD" | docker login "$CONTAINER_REGISTRY" --username "$ACR_USERNAME" --password-stdin
       displayName: Login to Azure Container Registry
-      inputs:
-        command: login
-        containerRegistry: ${{ parameters.dockerRegistryServiceConnection }}
+      env:
+        CONTAINER_REGISTRY: ${{ parameters.containerRegistry }}
+        ACR_USERNAME: $(ACR_USERNAME)
+        ACR_PASSWORD: $(ACR_PASSWORD)
 
     - script: |
         set -euo pipefail
@@ -411,11 +458,30 @@ stages:
     pool:
       vmImage: ${{ parameters.vmImageName }}
     steps:
-    - task: Docker@2
+    - script: |
+        set -euo pipefail
+
+        require_env() {
+          local name="$1"
+          local value="${!name:-}"
+          local unresolved_prefix
+          unresolved_prefix="$""("
+          if [ -z "$value" ] || [ "$value" = "${unresolved_prefix}${name})" ]; then
+            echo "Missing required environment variable: $name"
+            exit 1
+          fi
+        }
+
+        require_env ACR_USERNAME
+        require_env ACR_PASSWORD
+
+        echo "Logging in to ${CONTAINER_REGISTRY}..."
+        printf '%s' "$ACR_PASSWORD" | docker login "$CONTAINER_REGISTRY" --username "$ACR_USERNAME" --password-stdin
       displayName: Login to Azure Container Registry
-      inputs:
-        command: login
-        containerRegistry: ${{ parameters.dockerRegistryServiceConnection }}
+      env:
+        CONTAINER_REGISTRY: ${{ parameters.containerRegistry }}
+        ACR_USERNAME: $(ACR_USERNAME)
+        ACR_PASSWORD: $(ACR_PASSWORD)
 
     - script: |
         set -euo pipefail
