@@ -35,4 +35,4 @@ RUN npm ci --omit=dev --legacy-peer-deps --no-audit --no-fund --no-update-notifi
 
 EXPOSE 3003
 
-CMD ["node", "dist/main"]
+CMD ["node", "dist/src/main.js"]
