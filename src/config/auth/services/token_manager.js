@@ -3,12 +3,18 @@ import {
     InternalServerErrorException,
     UnauthorizedException,
 } from '@nestjs/common';
-import { connect } from 'node:http2';
+import * as grpc from '@grpc/grpc-js';
+import * as protoLoader from '@grpc/proto-loader';
+import { join } from 'path';
 
 @Injectable()
 export class TokenManager {
+    constructor() {
+        this.grpcAuthService = null;
+    }
+
     async getPayload(token) {
-        if (process.env.ENV === 'dev' && !process.env.LOGIN_BASE_URL && !process.env.BASE_URL) {
+        if (process.env.ENV === 'dev' && !process.env.AUTH_GATEWAY_TARGET && !process.env.BASE_URL) {
             return { cuenta: token, cedula: token?.substring(1), email: token };
         }
 
@@ -47,90 +53,109 @@ export class TokenManager {
     }
 
     async validateTokenWithGateway(token) {
-        const baseUrl = process.env.LOGIN_BASE_URL || process.env.BASE_URL;
-        if (!baseUrl) {
+        const target = this.getGatewayTarget();
+        if (!target) {
             throw new InternalServerErrorException(
-                'LOGIN_BASE_URL no configurado para validar tokens',
+                'AUTH_GATEWAY_TARGET no configurado para validar tokens via gateway',
             );
         }
 
-        const url = `${baseUrl.replace(/\/+$/, '')}/auth.v1.AuthService/ValidateToken`;
-        return this.postJsonHttp2(
-            url,
-            { token },
-            {
-                'x-api-key': process.env.LOGIN_API_KEY || '',
-            },
-        );
-    }
-
-    postJsonHttp2(url, body, headers = {}) {
         return new Promise((resolve, reject) => {
-            const parsedUrl = new URL(url);
-            const client = connect(parsedUrl.origin);
-            const requestBody = JSON.stringify(body || {});
-            const timeoutMs = Number(process.env.AUTH_VALIDATE_TIMEOUT_MS || 5000);
-            let responseBody = '';
-            let statusCode = 0;
+            const AuthServiceClient = this.getGrpcAuthService();
+            const client = new AuthServiceClient(
+                target,
+                grpc.credentials.createInsecure(),
+                this.getGrpcChannelOptions(),
+            );
 
-            const timeout = setTimeout(() => {
-                client.close();
-                reject(new Error(`Timeout al validar token contra ${parsedUrl.origin}`));
-            }, timeoutMs);
+            client.validateToken(
+                { token },
+                { deadline: this.getGrpcDeadline() },
+                (error, response) => {
+                    client.close();
 
-            client.on('error', (error) => {
-                clearTimeout(timeout);
-                reject(error);
-            });
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
 
-            const request = client.request({
-                ':method': 'POST',
-                ':path': `${parsedUrl.pathname}${parsedUrl.search}`,
-                'content-type': 'application/json',
-                accept: 'application/json',
-                ...this.cleanHeaders(headers),
-            });
-
-            request.setEncoding('utf8');
-            request.on('response', (responseHeaders) => {
-                statusCode = Number(responseHeaders[':status'] || 0);
-            });
-            request.on('data', (chunk) => {
-                responseBody += chunk;
-            });
-            request.on('end', () => {
-                clearTimeout(timeout);
-                client.close();
-
-                if (statusCode < 200 || statusCode >= 300) {
-                    reject(new Error(`ValidateToken respondio HTTP ${statusCode}: ${responseBody}`));
-                    return;
-                }
-
-                try {
-                    resolve(responseBody ? JSON.parse(responseBody) : {});
-                } catch (error) {
-                    reject(error);
-                }
-            });
-            request.on('error', (error) => {
-                clearTimeout(timeout);
-                client.close();
-                reject(error);
-            });
-
-            request.end(requestBody);
+                    resolve(response || {});
+                },
+            );
         });
     }
 
-    cleanHeaders(headers = {}) {
-        return Object.fromEntries(
-            Object.entries(headers).filter(([, value]) => (
-                value !== undefined &&
-                value !== null &&
-                value !== ''
-            )),
+    getGrpcAuthService() {
+        if (!this.grpcAuthService) {
+            const packageDefinition = protoLoader.loadSync(
+                join(__dirname, '../../../proto/auth.proto'),
+                {
+                    keepCase: false,
+                    longs: String,
+                    enums: String,
+                    defaults: true,
+                    oneofs: true,
+                },
+            );
+            const authProto = grpc.loadPackageDefinition(packageDefinition).auth.v1;
+            this.grpcAuthService = authProto.AuthService;
+        }
+
+        return this.grpcAuthService;
+    }
+
+    getGatewayTarget() {
+        return (
+            process.env.AUTH_GATEWAY_TARGET ||
+            this.grpcTargetFromBaseUrl(process.env.BASE_URL)
         );
+    }
+
+    grpcTargetFromBaseUrl(baseUrl) {
+        if (!baseUrl) {
+            return '';
+        }
+
+        const value = String(baseUrl).trim().replace(/\/+$/, '');
+        if (!value) {
+            return '';
+        }
+
+        if (!/^https?:\/\//i.test(value)) {
+            return value;
+        }
+
+        try {
+            const parsed = new URL(value);
+            if (parsed.port) {
+                return parsed.host;
+            }
+
+            return `${parsed.hostname}:50050`;
+        } catch {
+            return '';
+        }
+    }
+
+    getGrpcChannelOptions() {
+        return {
+            'grpc.keepalive_time_ms': 20000,
+            'grpc.keepalive_timeout_ms': 5000,
+            'grpc.keepalive_permit_without_calls': 1,
+            'grpc.initial_reconnect_backoff_ms': 1000,
+            'grpc.max_reconnect_backoff_ms': 5000,
+        };
+    }
+
+    getGrpcDeadline() {
+        const parsed = parseInt(
+            process.env.AUTH_GRPC_TIMEOUT_MS ||
+            process.env.AUTH_VALIDATE_TIMEOUT_MS ||
+            '5000',
+            10,
+        );
+        const timeoutMs = Number.isFinite(parsed) && parsed > 0 ? parsed : 5000;
+        return new Date(Date.now() + timeoutMs);
     }
 
     pickFirst(source, fields) {
