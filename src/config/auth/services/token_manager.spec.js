@@ -2,25 +2,18 @@ import {
     InternalServerErrorException,
     UnauthorizedException,
 } from '@nestjs/common';
-import axios from 'axios';
 import { TokenManager } from './token_manager';
-
-jest.mock('axios', () => ({
-    __esModule: true,
-    default: {
-        post: jest.fn(),
-    },
-}));
 
 describe('TokenManager', () => {
     const previousEnv = process.env;
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        jest.restoreAllMocks();
         process.env = {
             ...previousEnv,
             ENV: 'prod',
-            BASE_URL: 'https://gateway.test/',
+            LOGIN_BASE_URL: 'http://academico-login:3001',
+            LOGIN_API_KEY: 'login-api-key',
         };
     });
 
@@ -28,28 +21,24 @@ describe('TokenManager', () => {
         process.env = previousEnv;
     });
 
-    it('valida el token contra AuthService via gateway y devuelve el usuario autenticado', async () => {
-        axios.post.mockResolvedValue({
-            data: {
-                isValid: true,
-                identifier: '1000000000',
-                email: 'allunav@utn.edu.ec',
-                sessionId: 'SESSION-1',
-                userId: '1',
-                role: 'ESTUDIANTE',
-            },
+    it('valida el token contra AuthService de login y devuelve el usuario autenticado', async () => {
+        const manager = new TokenManager();
+        jest.spyOn(manager, 'postJsonHttp2').mockResolvedValue({
+            isValid: true,
+            identifier: '1000000000',
+            email: 'allunav@utn.edu.ec',
+            sessionId: 'SESSION-1',
+            userId: '1',
+            role: 'ESTUDIANTE',
         });
 
-        const payload = await new TokenManager().getPayload('access-token');
+        const payload = await manager.getPayload('access-token');
 
-        expect(axios.post).toHaveBeenCalledWith(
-            'https://gateway.test/auth.v1.AuthService/ValidateToken',
+        expect(manager.postJsonHttp2).toHaveBeenCalledWith(
+            'http://academico-login:3001/auth.v1.AuthService/ValidateToken',
             { token: 'access-token' },
             expect.objectContaining({
-                headers: expect.objectContaining({
-                    'content-type': 'application/json',
-                    accept: 'application/json',
-                }),
+                'x-api-key': 'login-api-key',
             }),
         );
         expect(payload).toMatchObject({
@@ -63,17 +52,17 @@ describe('TokenManager', () => {
     });
 
     it('rechaza tokens revocados o invalidos reportados por login', async () => {
-        axios.post.mockResolvedValue({
-            data: {
-                isValid: false,
-            },
+        const manager = new TokenManager();
+        jest.spyOn(manager, 'postJsonHttp2').mockResolvedValue({
+            isValid: false,
         });
 
-        await expect(new TokenManager().getPayload('revoked-token'))
+        await expect(manager.getPayload('revoked-token'))
             .rejects.toThrow(UnauthorizedException);
     });
 
-    it('exige BASE_URL fuera de dev', async () => {
+    it('exige LOGIN_BASE_URL fuera de dev', async () => {
+        delete process.env.LOGIN_BASE_URL;
         delete process.env.BASE_URL;
 
         await expect(new TokenManager().getPayload('access-token'))
@@ -82,6 +71,7 @@ describe('TokenManager', () => {
 
     it('mantiene fallback local solo en dev sin BASE_URL', async () => {
         process.env.ENV = 'dev';
+        delete process.env.LOGIN_BASE_URL;
         delete process.env.BASE_URL;
 
         await expect(new TokenManager().getPayload('dev-token'))
@@ -89,6 +79,5 @@ describe('TokenManager', () => {
                 cuenta: 'dev-token',
                 email: 'dev-token',
             });
-        expect(axios.post).not.toHaveBeenCalled();
     });
 });
