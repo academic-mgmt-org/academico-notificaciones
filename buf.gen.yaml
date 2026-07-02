@@ -1,6 +1,5 @@
-version: v1
+version: v2
 plugins:
-  - plugin: buf.build/bufbuild/es
+  - local: protoc-gen-es
     out: src/gen
     opt: target=js
- 
