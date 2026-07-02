@@ -757,7 +757,7 @@ Stage ApproveProduction:
 Stage DeployProduction:
 1. Corre en ubuntu-latest.
 2. Inicia sesión en Azure Container Registry.
-3. Usa PROD_SSH_PRIVATE_KEY_B64 para conectarse por SSH al servidor 20.115.132.131.
+3. Usa PROD_SSH_HOST y PROD_SSH_PRIVATE_KEY_B64 para conectarse por SSH al servidor de produccion.
 4. Copia la autenticación de Docker/ACR al servidor de producción.
 5. Conserva el PORT existente del .env remoto o usa 3003 como valor por defecto.
 6. Genera el .env del servicio en /home/azureuser/academico-notificaciones.

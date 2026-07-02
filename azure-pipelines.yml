@@ -381,6 +381,8 @@ stages:
           fi
         }
 
+        require_env PROD_SSH_HOST
+        require_env PROD_SSH_USER
         require_env PROD_SSH_PRIVATE_KEY_B64
         validate_env_name "$IMAGE_ENV_VARIABLE_NAME"
 
